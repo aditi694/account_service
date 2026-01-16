@@ -5,6 +5,7 @@ import com.bank.account_service.dto.response.AccountResponse;
 import com.bank.account_service.dto.response.BalanceUpdateResponse;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public interface AccountService {
@@ -13,7 +14,7 @@ public interface AccountService {
 
     AccountResponse getById(UUID id);
 
-    BalanceUpdateResponse credit(UUID id, BigDecimal amount);
+    List<AccountResponse> getAll();
 
-    BalanceUpdateResponse debit(UUID id, BigDecimal amount);
+    BalanceUpdateResponse debit(UUID accountId, BigDecimal amount);
 }

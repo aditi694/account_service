@@ -5,12 +5,10 @@ import com.bank.account_service.dto.request.BalanceRequest;
 import com.bank.account_service.dto.response.AccountResponse;
 import com.bank.account_service.dto.response.BalanceUpdateResponse;
 import com.bank.account_service.service.AccountService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
-
 @RestController
 @RequestMapping("/accounts")
 public class AccountController {
@@ -21,36 +19,24 @@ public class AccountController {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<AccountResponse> create(
-            @RequestBody AccountCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(service.create(request));
-    }
-
     @GetMapping("/{id}")
     public AccountResponse get(@PathVariable UUID id) {
         return service.getById(id);
     }
 
-    @PutMapping("/{id}/credit")
-    public ResponseEntity<BalanceUpdateResponse> credit(
-            @PathVariable UUID id,
-            @RequestBody BalanceRequest request
-    ) {
-        return ResponseEntity.ok(
-                service.credit(id, request.getAmount())
-        );
+    @GetMapping
+    public List<AccountResponse> getAll() {
+        return (List<AccountResponse>) service.getAll();
+    }
+
+    @PostMapping
+    public AccountResponse create(@RequestBody AccountCreateRequest req) {
+        return service.create(req);
     }
 
     @PutMapping("/{id}/debit")
-    public ResponseEntity<BalanceUpdateResponse> debit(
-            @PathVariable UUID id,
-            @RequestBody BalanceRequest request
-    ) {
-        return ResponseEntity.ok(
-                service.debit(id, request.getAmount())
-        );
+    public BalanceUpdateResponse debit(@PathVariable UUID id,
+                                       @RequestBody BalanceRequest req) {
+        return service.debit(id, req.getAmount());
     }
 }
-

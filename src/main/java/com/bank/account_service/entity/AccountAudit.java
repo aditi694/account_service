@@ -9,8 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "account_audit")
-@Getter @Setter
-@Builder
+@Getter @Setter @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class AccountAudit {
 
@@ -19,9 +18,14 @@ public class AccountAudit {
     private Long id;
 
     private UUID accountId;
+
     private String action;
+
     private BigDecimal oldBalance;
     private BigDecimal newBalance;
+
     private String performedBy;
+    private String performedByRole;
+
     private LocalDateTime timestamp;
 }

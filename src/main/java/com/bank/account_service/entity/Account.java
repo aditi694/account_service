@@ -1,20 +1,19 @@
 package com.bank.account_service.entity;
 
 import com.bank.account_service.enums.AccountStatus;
+import com.bank.account_service.enums.AccountType;
 import com.bank.account_service.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
-
 
 @Entity
 @Table(name = "accounts")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor @Builder
+@Getter @Setter @Builder
+@NoArgsConstructor @AllArgsConstructor
 public class Account {
 
     @Id
@@ -23,10 +22,18 @@ public class Account {
 
     private UUID customerId;
 
-    @Column(unique = true, nullable = false)
+    private String customerName;
+
+    @Column(unique = true)
     private String accountNumber;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+
+    private String bankName;
+    private String branchName;
+    private String ifscCode;
+
     private BigDecimal balance;
 
     private String currency;
@@ -37,34 +44,28 @@ public class Account {
     @Version
     private Long version;
 
-    public void credit(BigDecimal amount) {
-
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw BusinessException.invalidAmount();
-        }
-
-        if (this.status != AccountStatus.ACTIVE) {
-            throw BusinessException.accountFrozen();
-        }
-
-        this.balance = this.balance.add(amount);
-    }
+    private LocalDateTime openedAt;
+    private LocalDateTime updatedAt;
 
     public void debit(BigDecimal amount) {
+        validateActive();
+        validateAmount(amount);
 
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw BusinessException.invalidAmount();
-        }
-
-        if (this.status != AccountStatus.ACTIVE) {
-            throw BusinessException.accountFrozen();
-        }
-
-        if (this.balance.compareTo(amount) < 0) {
+        if (balance.compareTo(amount) < 0) {
             throw BusinessException.insufficientBalance();
         }
-
-        this.balance = this.balance.subtract(amount);
+        balance = balance.subtract(amount);
     }
 
+    private void validateActive() {
+        if (status != AccountStatus.ACTIVE) {
+            throw BusinessException.accountNotActive();
+        }
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw BusinessException.invalidAmount();
+        }
+    }
 }

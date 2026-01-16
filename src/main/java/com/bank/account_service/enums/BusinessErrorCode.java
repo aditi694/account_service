@@ -1,0 +1,14 @@
+package com.bank.account_service.enums;
+
+public enum BusinessErrorCode {
+    ACCOUNT_NOT_FOUND,
+    CUSTOMER_NOT_FOUND,
+    UNAUTHORIZED,
+    FORBIDDEN,
+    INVALID_AMOUNT,
+    INSUFFICIENT_BALANCE,
+    ACCOUNT_BLOCKED,
+    ACCOUNT_CLOSED,
+    KYC_NOT_COMPLETED,
+    CUSTOMER_BLOCKED
+}

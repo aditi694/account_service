@@ -17,4 +17,21 @@ public class BalanceUpdateResponse {
     private BigDecimal newBalance;
     private String currency;
     private LocalDateTime timestamp;
+
+    public static BalanceUpdateResponse success(
+            String message,
+            UUID accountId,
+            BigDecimal oldBalance,
+            BigDecimal newBalance,
+            String currency
+    ) {
+        return BalanceUpdateResponse.builder()
+                .message(message)
+                .accountId(accountId)
+                .oldBalance(oldBalance)
+                .newBalance(newBalance)
+                .currency(currency)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }
