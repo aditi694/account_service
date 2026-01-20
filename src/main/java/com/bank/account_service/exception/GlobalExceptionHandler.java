@@ -1,33 +1,38 @@
 package com.bank.account_service.exception;
 
-import com.bank.account_service.exception.ApiErrorResponse;
-import com.bank.account_service.exception.BusinessException;
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiErrorResponse> handleBusiness(BusinessException ex) {
-
-        ApiErrorResponse response =
-                new ApiErrorResponse(ex.getMessage(), ex.getStatus().value());
-
+    public ResponseEntity<ApiErrorResponse> handleBusiness(
+            BusinessException ex
+    ) {
         return ResponseEntity
                 .status(ex.getStatus())
-                .body(response);
+                .body(new ApiErrorResponse(
+                        ex.getMessage(),
+                        ex.getErrorCode().name(),
+                        ex.getStatus().value(),
+                        LocalDateTime.now()
+                ));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
-
-        ApiErrorResponse response =
-                new ApiErrorResponse("Internal server error", 500);
-
-        return ResponseEntity.status(500).body(response);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiErrorResponse(
+                        "Internal server error",
+                        "INTERNAL_SERVER_ERROR",
+                        500,
+                        LocalDateTime.now()
+                ));
     }
 }

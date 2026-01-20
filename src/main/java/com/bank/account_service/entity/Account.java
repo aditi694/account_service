@@ -2,7 +2,6 @@ package com.bank.account_service.entity;
 
 import com.bank.account_service.enums.AccountStatus;
 import com.bank.account_service.enums.AccountType;
-import com.bank.account_service.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,60 +11,43 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "accounts")
-@Getter @Setter @Builder
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Account {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID customerId;
-
-    private String customerName;
-
-    @Column(unique = true)
+    @Column(name = "account_number", unique = true, nullable = false)
     private String accountNumber;
 
+    @Column(name = "customer_id", nullable = false)
+    private UUID customerId;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "account_type")
     private AccountType accountType;
 
-    private String bankName;
-    private String branchName;
-    private String ifscCode;
-
+    @Column(name = "balance")
     private BigDecimal balance;
 
-    private String currency;
+    @Column(name = "primary_account")
+    private boolean primaryAccount;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private AccountStatus status;
 
-    @Version
-    private Long version;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
-    private LocalDateTime openedAt;
-    private LocalDateTime updatedAt;
+    @Column(name = "requires_password_change")
+    private boolean requiresPasswordChange;
 
-    public void debit(BigDecimal amount) {
-        validateActive();
-        validateAmount(amount);
-
-        if (balance.compareTo(amount) < 0) {
-            throw BusinessException.insufficientBalance();
-        }
-        balance = balance.subtract(amount);
-    }
-
-    private void validateActive() {
-        if (status != AccountStatus.ACTIVE) {
-            throw BusinessException.accountNotActive();
-        }
-    }
-
-    private void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw BusinessException.invalidAmount();
-        }
-    }
+    @Column(name = "opening_date")
+    private LocalDateTime openingDate;
 }

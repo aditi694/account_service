@@ -1,9 +1,11 @@
 package com.bank.account_service.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,9 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
-import io.jsonwebtoken.Claims;
+import java.util.Map;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -29,33 +31,64 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain chain
-    ) throws IOException, ServletException {
+    ) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // ✅ Allow login & internal calls without token
+        if (path.startsWith("/api/account/login")
+                || path.contains("/admin/")
+                || path.startsWith("/api/internal/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
 
         String header = request.getHeader("Authorization");
 
-        if (header != null && header.startsWith("Bearer ")) {
-
-            String token = header.substring(7);
-            Claims claims = jwtUtil.validateToken(token);
-
-            AuthUser user = new AuthUser(
-                    claims.get("username", String.class),
-                    claims.get("role", String.class),
-                    claims.get("customerId", String.class) != null
-                            ? UUID.fromString(claims.get("customerId", String.class))
-                            : null
-            );
-
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            List.of(new SimpleGrantedAuthority(user.getRole()))
-                    );
-
-            SecurityContextHolder.getContext().setAuthentication(auth);
+        // ❌ Token missing
+        if (header == null || !header.startsWith("Bearer ")) {
+            sendError(response, HttpStatus.UNAUTHORIZED, "Authorization token is missing");
+            return;
         }
 
-        chain.doFilter(request, response);
+        try {
+            String token = header.substring(7);
+            AuthUser authUser = jwtUtil.getAuthUser(token);
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            authUser,
+                            null,
+                            List.of(new SimpleGrantedAuthority(authUser.getRole()))
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            chain.doFilter(request, response);
+
+        } catch (Exception e) {
+            // ❌ Token invalid / expired
+            sendError(response, HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
+    }
+
+    private void sendError(
+            HttpServletResponse response,
+            HttpStatus status,
+            String message
+    ) throws IOException {
+
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now().toString(),
+                "status", status.value(),
+                "error", status.getReasonPhrase(),
+                "message", message
+        );
+
+        new ObjectMapper().writeValue(response.getOutputStream(), body);
     }
 }

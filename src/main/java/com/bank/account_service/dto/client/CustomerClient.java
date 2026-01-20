@@ -1,11 +1,7 @@
 package com.bank.account_service.dto.client;
 
-import com.bank.account_service.dto.client.CustomerSummaryDto;
-import com.bank.account_service.exception.BusinessException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import com.bank.account_service.dto.response.NomineeResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
@@ -13,33 +9,26 @@ import java.util.UUID;
 @Component
 public class CustomerClient {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${customer.service.url}")
-    private String customerServiceUrl;
-
-    public CustomerClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    // Customer summary (KYC, name, etc.)
+    public CustomerSummary getCustomer(UUID customerId) {
+        return restTemplate.getForObject(
+                "http://localhost:8081/api/internal/customers/"
+                        + customerId + "/summary",
+                CustomerSummary.class
+        );
     }
 
-    public CustomerSummaryDto getCustomer(UUID customerId) {
-
+    public NomineeResponse getNominee(UUID customerId) {
         try {
             return restTemplate.getForObject(
-                    customerServiceUrl + "/customers/" + customerId,
-                    CustomerSummaryDto.class
+                    "http://localhost:8081/customers/" + customerId + "/nominee",
+                    NomineeResponse.class
             );
-
-        } catch (HttpClientErrorException.NotFound ex) {
-            throw BusinessException.customerNotFound();
-
-        } catch (HttpClientErrorException ex) {
-            // any other 4xx/5xx from customer-service
-            throw new BusinessException(
-                    "Failed to verify customer",
-                    HttpStatus.BAD_GATEWAY,
-                    null
-            );
+        } catch (Exception e) {
+            e.printStackTrace(); // 🔴 IMPORTANT FOR DEBUG
+            return null;
         }
     }
 }

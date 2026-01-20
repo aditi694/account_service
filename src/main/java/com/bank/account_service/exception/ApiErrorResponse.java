@@ -1,28 +1,16 @@
 package com.bank.account_service.exception;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@AllArgsConstructor
 public class ApiErrorResponse {
 
     private String message;
+    private String errorCode;
     private int status;
     private LocalDateTime timestamp;
-
-    public ApiErrorResponse(String message, int status) {
-        this.message = message;
-        this.status = status;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
 }

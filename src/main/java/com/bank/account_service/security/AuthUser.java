@@ -1,33 +1,19 @@
 package com.bank.account_service.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.UUID;
 
+@Getter
+@AllArgsConstructor
+@Builder
 public class AuthUser {
 
-    private final String username;
-    private final String role;
-    private final UUID customerId;
-
-    public AuthUser(String username, String role, UUID customerId) {
-        this.username = username;
-        this.role = role;
-        this.customerId = customerId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public UUID getCustomerId() {
-        return customerId;
-    }
+    private UUID accountId;
+    private UUID customerId;
+    private String role;
 
     public boolean isCustomer() {
         return "ROLE_CUSTOMER".equals(role);
@@ -36,4 +22,5 @@ public class AuthUser {
     public boolean isAdmin() {
         return "ROLE_ADMIN".equals(role);
     }
+
 }

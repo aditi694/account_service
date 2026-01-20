@@ -1,42 +1,76 @@
 package com.bank.account_service.controller;
 
-import com.bank.account_service.dto.request.AccountCreateRequest;
-import com.bank.account_service.dto.request.BalanceRequest;
-import com.bank.account_service.dto.response.AccountResponse;
-import com.bank.account_service.dto.response.BalanceUpdateResponse;
-import com.bank.account_service.service.AccountService;
+import com.bank.account_service.dto.account.AccountDashboardResponse;
+import com.bank.account_service.dto.account.BalanceResponse;
+import com.bank.account_service.dto.account.ChangePasswordRequest;
+import com.bank.account_service.dto.account.ChangePasswordResponse;
+import com.bank.account_service.dto.auth.LoginRequest;
+import com.bank.account_service.dto.auth.LoginResponse;
+import com.bank.account_service.security.AuthUser;
+import com.bank.account_service.service.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/account")
 public class AccountController {
 
-    private final AccountService service;
+    private final AccountService accountService;
+    private final BalanceService balanceService;
+    private final DashboardService dashboardService;
+    private final PasswordService passwordService;
 
-    public AccountController(AccountService service) {
-        this.service = service;
+    public AccountController(
+            AccountService accountService,
+            BalanceService balanceService,
+            DashboardService dashboardService,
+            PasswordService passwordService
+    ) {
+        this.accountService = accountService;
+        this.balanceService = balanceService;
+        this.dashboardService = dashboardService;
+        this.passwordService = passwordService;
     }
 
-    @GetMapping("/{id}")
-    public AccountResponse get(@PathVariable UUID id) {
-        return service.getById(id);
+    /* ================= AUTH ================= */
+
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request) {
+        return accountService.login(request);
     }
 
-    @GetMapping
-    public List<AccountResponse> getAll() {
-        return (List<AccountResponse>) service.getAll();
+    /* ================= BALANCE ================= */
+
+    @GetMapping("/balance")
+    public BalanceResponse getBalance() {
+        AuthUser user = getUser();
+        return balanceService.getBalance(user.getAccountId());
     }
 
-    @PostMapping
-    public AccountResponse create(@RequestBody AccountCreateRequest req) {
-        return service.create(req);
+    /* ================= DASHBOARD ================= */
+
+    @GetMapping("/dashboard")
+    public AccountDashboardResponse dashboard() {
+        AuthUser user = getUser();
+        return dashboardService.getDashboard(user);
     }
 
-    @PutMapping("/{id}/debit")
-    public BalanceUpdateResponse debit(@PathVariable UUID id,
-                                       @RequestBody BalanceRequest req) {
-        return service.debit(id, req.getAmount());
+    /* ================= PASSWORD ================= */
+
+    @PostMapping("/change-password")
+    public ChangePasswordResponse changePassword(
+            @RequestBody ChangePasswordRequest request
+    ) {
+        AuthUser user = getUser();
+        return passwordService.changePassword(user.getAccountId(), request);
+    }
+
+    /* ================= COMMON ================= */
+
+    private AuthUser getUser() {
+        return (AuthUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }

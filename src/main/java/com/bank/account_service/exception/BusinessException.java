@@ -1,90 +1,124 @@
 package com.bank.account_service.exception;
 
 import com.bank.account_service.enums.BusinessErrorCode;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
+
+@Getter
 public class BusinessException extends RuntimeException {
 
+    private final BusinessErrorCode errorCode;
     private final HttpStatus status;
-    private final BusinessErrorCode code;
 
-    private BusinessException(String message, HttpStatus status, BusinessErrorCode code) {
+    private BusinessException(
+            String message,
+            BusinessErrorCode errorCode,
+            HttpStatus status
+    ) {
         super(message);
+        this.errorCode = errorCode;
         this.status = status;
-        this.code = code;
     }
 
-    public HttpStatus getStatus() { return status; }
-    public BusinessErrorCode getCode() { return code; }
-
-    // ---------- FACTORIES ----------
-
-    public static BusinessException accountNotFound() {
-        return new BusinessException("Account not found", HttpStatus.NOT_FOUND,
-                BusinessErrorCode.ACCOUNT_NOT_FOUND);
+    /* ========== GENERIC ========== */
+    public static BusinessException validationError(String msg) {
+        return new BusinessException(
+                msg,
+                BusinessErrorCode.BAD_REQUEST,
+                HttpStatus.BAD_REQUEST
+        );
     }
+
+    public static BusinessException badRequest(String message) {
+        return new BusinessException(
+                message,
+                BusinessErrorCode.BAD_REQUEST,
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    public static BusinessException forbidden(String message) {
+        return new BusinessException(
+                message,
+                BusinessErrorCode.FORBIDDEN,
+                HttpStatus.FORBIDDEN
+        );
+    }
+
     public static BusinessException unauthorized() {
         return new BusinessException(
-                "Authentication token is required",
-                HttpStatus.UNAUTHORIZED,
-                BusinessErrorCode.UNAUTHORIZED
+                "Unauthorized access",
+                BusinessErrorCode.UNAUTHORIZED,
+                HttpStatus.UNAUTHORIZED
         );
     }
 
-    public static BusinessException accountNotActive() {
+    /* ========== ACCOUNT ========== */
+
+    public static BusinessException accountNotFound() {
         return new BusinessException(
-                "Account is not active",
-                HttpStatus.CONFLICT,
-                BusinessErrorCode.ACCOUNT_CLOSED
+                "Account not found",
+                BusinessErrorCode.ACCOUNT_NOT_FOUND,
+                HttpStatus.NOT_FOUND
         );
     }
 
-    public static BusinessException forbidden() {
-        return new BusinessException("You are not allowed to perform this action",
-                HttpStatus.FORBIDDEN, BusinessErrorCode.FORBIDDEN);
-    }
-
-    public static BusinessException invalidAmount() {
-        return new BusinessException("Amount must be greater than zero",
-                HttpStatus.BAD_REQUEST, BusinessErrorCode.INVALID_AMOUNT);
-    }
-
-    public static BusinessException insufficientBalance() {
-        return new BusinessException("Insufficient balance",
-                HttpStatus.BAD_REQUEST, BusinessErrorCode.INSUFFICIENT_BALANCE);
+    public static BusinessException invalidCredentials() {
+        return new BusinessException(
+                "Invalid account number or password",
+                BusinessErrorCode.INVALID_CREDENTIALS,
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     public static BusinessException accountBlocked() {
-        return new BusinessException("Account is blocked",
-                HttpStatus.CONFLICT, BusinessErrorCode.ACCOUNT_BLOCKED);
+        return new BusinessException(
+                "Account is blocked",
+                BusinessErrorCode.ACCOUNT_BLOCKED,
+                HttpStatus.FORBIDDEN
+        );
     }
 
     public static BusinessException accountClosed() {
-        return new BusinessException("Account is closed",
-                HttpStatus.CONFLICT, BusinessErrorCode.ACCOUNT_CLOSED);
-    }
-
-    public static BusinessException customerNotFound() {
         return new BusinessException(
-                "Customer not found",
-                HttpStatus.NOT_FOUND,
-                BusinessErrorCode.CUSTOMER_NOT_FOUND
+                "Account is closed",
+                BusinessErrorCode.ACCOUNT_CLOSED,
+                HttpStatus.BAD_REQUEST
         );
     }
 
-    public static BusinessException kycNotCompleted() {
+    /* ========== TRANSACTION ========== */
+
+    public static BusinessException invalidAmount() {
         return new BusinessException(
-                "KYC not completed",
-                HttpStatus.CONFLICT,
-                BusinessErrorCode.KYC_NOT_COMPLETED
+                "Amount must be greater than zero",
+                BusinessErrorCode.INVALID_AMOUNT,
+                HttpStatus.BAD_REQUEST
         );
     }
 
-    public static BusinessException customerBlocked() {
+    public static BusinessException insufficientBalance() {
         return new BusinessException(
-                "Customer is blocked",
-                HttpStatus.CONFLICT,
-                BusinessErrorCode.CUSTOMER_BLOCKED
+                "Insufficient balance",
+                BusinessErrorCode.INSUFFICIENT_BALANCE,
+                HttpStatus.BAD_REQUEST
         );
     }
+
+    public static BusinessException loanNotFound() {
+        return new BusinessException(
+                "Loan not found",
+                BusinessErrorCode.BAD_REQUEST,
+                HttpStatus.NOT_FOUND
+        );
+    }
+    public static BusinessException loanRejected() {
+        return new BusinessException(
+                "Loan rejected",
+                BusinessErrorCode.LOAN_REJECTED,
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
 
 }
