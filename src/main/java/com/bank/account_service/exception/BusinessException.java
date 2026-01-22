@@ -119,6 +119,11 @@ public class BusinessException extends RuntimeException {
                 HttpStatus.BAD_REQUEST
         );
     }
-
-
+    public static BusinessException accountInactive() {
+        return new BusinessException(
+                "Account is not active",
+                BusinessErrorCode.ACCOUNT_INACTIVE,
+                HttpStatus.BAD_REQUEST
+        );
+    }
 }

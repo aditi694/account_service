@@ -50,4 +50,8 @@ public class Account {
 
     @Column(name = "opening_date")
     private LocalDateTime openingDate;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
 }

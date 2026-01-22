@@ -35,18 +35,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // ✅ Allow login & internal calls without token
-        if (path.startsWith("/api/account/login")
-                || path.contains("/admin/")
-                || path.startsWith("/api/internal/")) {
+        // Allow public endpoints
+        if (path.startsWith("/api/account/login") || path.startsWith("/api/internal/")) {
             chain.doFilter(request, response);
             return;
         }
 
-
         String header = request.getHeader("Authorization");
 
-        // ❌ Token missing
         if (header == null || !header.startsWith("Bearer ")) {
             sendError(response, HttpStatus.UNAUTHORIZED, "Authorization token is missing");
             return;
@@ -64,21 +60,14 @@ public class JwtFilter extends OncePerRequestFilter {
                     );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             chain.doFilter(request, response);
 
         } catch (Exception e) {
-            // ❌ Token invalid / expired
             sendError(response, HttpStatus.UNAUTHORIZED, "Invalid or expired token");
         }
     }
 
-    private void sendError(
-            HttpServletResponse response,
-            HttpStatus status,
-            String message
-    ) throws IOException {
-
+    private void sendError(HttpServletResponse response, HttpStatus status, String message) throws IOException {
         response.setStatus(status.value());
         response.setContentType("application/json");
 
