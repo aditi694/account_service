@@ -20,7 +20,7 @@ public class BusinessException extends RuntimeException {
         this.status = status;
     }
 
-    /* ========== GENERIC ========== */
+
     public static BusinessException validationError(String msg) {
         return new BusinessException(
                 msg,
@@ -53,7 +53,7 @@ public class BusinessException extends RuntimeException {
         );
     }
 
-    /* ========== ACCOUNT ========== */
+
 
     public static BusinessException accountNotFound() {
         return new BusinessException(
@@ -87,7 +87,7 @@ public class BusinessException extends RuntimeException {
         );
     }
 
-    /* ========== TRANSACTION ========== */
+
 
     public static BusinessException invalidAmount() {
         return new BusinessException(

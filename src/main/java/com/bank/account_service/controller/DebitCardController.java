@@ -23,12 +23,6 @@ public class DebitCardController {
         return service.getDebitCard(user.getAccountId());
     }
 
-    // ADMIN
-    @PostMapping("/admin/cards/debit/{accountId}/issue")
-    public void issue(@PathVariable UUID accountId) {
-        service.issueDebitCard(accountId);
-    }
-
     @PostMapping("/admin/cards/debit/{accountId}/block")
     public void block(@PathVariable UUID accountId) {
         service.blockDebitCard(accountId);

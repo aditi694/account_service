@@ -5,10 +5,12 @@ import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.card.DebitCardResponse;
 import com.bank.account_service.dto.client.CustomerClient;
 import com.bank.account_service.dto.client.CustomerSummary;
+import com.bank.account_service.dto.client.BankBranchDto;
 import com.bank.account_service.dto.insurance.InsuranceResponse;
 import com.bank.account_service.dto.loan.LoanResponse;
 import com.bank.account_service.dto.response.*;
 import com.bank.account_service.entity.*;
+import com.bank.account_service.enums.CardStatus;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.*;
 import com.bank.account_service.security.AuthUser;
@@ -28,15 +30,18 @@ public class DashboardServiceImpl implements DashboardService {
     private final DebitCardRepository debitRepo;
     private final LoanRepository loanRepo;
     private final InsuranceRepository insuranceRepo;
-    private final CustomerClient customerClient;  // ✅ Add this
+    private final CustomerClient customerClient;
     private final CreditCardRepository creditCardRepo;
+    private final CreditCardRequestRepository requestRepo;
+
 
     public DashboardServiceImpl(
             AccountRepository accountRepo,
             DebitCardRepository debitRepo,
             LoanRepository loanRepo,
             InsuranceRepository insuranceRepo,
-            CustomerClient customerClient, CreditCardRepository creditCardRepo  // ✅ Add this
+            CustomerClient customerClient,
+            CreditCardRepository creditCardRepo, CreditCardRequestRepository requestRepo
     ) {
         this.accountRepo = accountRepo;
         this.debitRepo = debitRepo;
@@ -44,50 +49,39 @@ public class DashboardServiceImpl implements DashboardService {
         this.insuranceRepo = insuranceRepo;
         this.customerClient = customerClient;
         this.creditCardRepo = creditCardRepo;
+        this.requestRepo = requestRepo;
     }
 
     @Override
     public AccountDashboardResponse getDashboard(AuthUser user) {
 
-        System.out.println("=== DASHBOARD REQUEST ===");
-        System.out.println("Account ID: " + user.getAccountId());
-        System.out.println("Customer ID: " + user.getCustomerId());
-
-        // 1. Find account
         Account account = accountRepo.findById(user.getAccountId())
-                .orElseThrow(() -> {
-                    System.err.println("Account not found: " + user.getAccountId());
-                    return BusinessException.accountNotFound();
-                });
+                .orElseThrow(BusinessException::accountNotFound);
 
-        System.out.println("Account found: " + account.getAccountNumber());
+        CustomerSummary customer = fetchCustomerSummary(user.getCustomerId());
 
-        // 2. Fetch customer data from Customer Service
-        CustomerSummary customer = null;
-        try {
-            customer = customerClient.getCustomer(UUID.fromString(user.getCustomerId().toString()));
-            System.out.println("Customer data fetched: " + customer.getFullName());
-        } catch (Exception e) {
-            System.err.println("Failed to fetch customer data: " + e.getMessage());
-        }
 
-        // 3. Get debit card
-        Optional<DebitCard> debitCard = debitRepo.findByAccountNumber(account.getAccountNumber());
-        Optional<CreditCard> creditCard =
-                creditCardRepo.findByCustomerId(user.getCustomerId())
-                        .stream()
-                        .findFirst();
+        BankBranchDto bankBranch = fetchBankBranch(account.getIfscCode());
 
-        // 4. Get loans
-        List<Loan> loans = loanRepo.findByAccount_CustomerId(user.getCustomerId());
+        Optional<DebitCard> debitCard = debitRepo.findByAccountNumber(
+                account.getAccountNumber()
+        );
+        Optional<CreditCard> creditCard = creditCardRepo
+                .findByCustomerId(user.getCustomerId())
+                .stream()
+                .findFirst();
 
-        // 5. Get insurances
-        List<Insurance> insurances = insuranceRepo.findByAccount_CustomerId(user.getCustomerId());
+        List<Loan> loans = loanRepo.findByAccount_CustomerId(
+                user.getCustomerId()
+        );
+        List<Insurance> insurances = insuranceRepo.findByAccount_CustomerId(
+                user.getCustomerId()
+        );
 
-        // 6. Get linked accounts (all accounts of same customer)
-        List<Account> linkedAccounts = accountRepo.findByCustomerId(user.getCustomerId());
+        List<Account> linkedAccounts = accountRepo.findByCustomerId(
+                user.getCustomerId()
+        );
 
-        // 7. Build dashboard response
         return AccountDashboardResponse.builder()
                 .accountId(account.getId())
                 .customerId(user.getCustomerId())
@@ -96,70 +90,54 @@ public class DashboardServiceImpl implements DashboardService {
                 .balance(account.getBalance())
                 .status(account.getStatus().name())
 
-                // Cards
+                .bankBranch(bankBranch != null
+                        ? AccountDashboardResponse.BankBranchDetails.builder()
+                        .ifscCode(bankBranch.ifscCode())
+                        .bankName(bankBranch.bankName())
+                        .branchName(bankBranch.branchName())
+                        .city(bankBranch.city())
+                        .address(bankBranch.branchName() + ", " + bankBranch.city())
+                        .build()
+                        : null)
+
                 .debitCard(mapDebit(debitCard))
-                .creditCard(
-                        creditCard.map(c -> CreditCardResponse.builder()
-                                .cardNumber(mask(c.getCardNumber()))
-                                .creditLimit(c.getCreditLimit())
-                                .availableCredit(c.getAvailableCredit())
-                                .outstanding(c.getOutstandingAmount())
-                                .status(c.getStatus().name())
-                                .build()
-                        ).orElse(
-                                CreditCardResponse.builder()
-                                        .cardNumber("Not Issued")
-                                        .creditLimit(0)
-                                        .availableCredit(0)
-                                        .outstanding(0)
-                                        .status("NOT_ISSUED")
-                                        .build()
-                        )
-                )
+                .creditCard(mapCredit(creditCard, user.getCustomerId()))
 
-
-
-                // Loans & Insurance
                 .loans(mapLoans(loans))
                 .insurances(mapInsurances(insurances))
 
-                // Limits
                 .limits(LimitsResponse.builder()
                         .dailyTransactionLimit(100000)
                         .perTransactionLimit(50000)
                         .build())
 
-                .nominee(
-                        customer != null && customer.getNomineeName() != null
-                                ? NomineeResponse.builder()
-                                .name(customer.getNomineeName())
-                                .relation(customer.getNomineeRelation())
-                                .build()
-                                : NomineeResponse.builder()
-                                .name("Not Set")
-                                .relation("N/A")
-                                .build()
-                )
+                .nominee(mapNominee(customer))
 
+                .kyc(mapKyc(customer))
 
-                // KYC - from Customer Service
-                .kyc(customer != null
-                        ? KycStatusResponse.builder()
-                        .verified(customer.getKycStatus().equals("APPROVED"))
-                        .status(customer.getKycStatus())
-                        .build()
-                        : KycStatusResponse.builder()
-                        .verified(false)
-                        .status("PENDING")
-                        .build())
-
-                // Linked Accounts - all accounts of customer
-                .linkedAccounts(mapLinkedAccounts(linkedAccounts, account.getAccountNumber()))
+                .linkedAccounts(mapLinkedAccounts(
+                        linkedAccounts,
+                        account.getAccountNumber()
+                ))
 
                 .build();
     }
 
-    /* -------------------- HELPERS -------------------- */
+    private CustomerSummary fetchCustomerSummary(UUID customerId) {
+        try {
+            return customerClient.getCustomer(customerId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private BankBranchDto fetchBankBranch(String ifscCode) {
+        try {
+            return customerClient.getBankBranchByIfsc(ifscCode);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     private DebitCardResponse mapDebit(Optional<DebitCard> card) {
         if (card.isEmpty()) {
@@ -167,7 +145,7 @@ public class DashboardServiceImpl implements DashboardService {
                     .cardNumber("Not Issued")
                     .expiry("N/A")
                     .dailyLimit(0)
-                    .status("Not Issued")
+                    .status("NOT_ISSUED")
                     .build();
         }
 
@@ -179,55 +157,78 @@ public class DashboardServiceImpl implements DashboardService {
                 .status(c.getStatus().name())
                 .build();
     }
+    private CreditCardResponse mapCredit(
+            Optional<CreditCard> card,
+            UUID customerId
+    ) {
+        if (card.isPresent()) {
+            CreditCard c = card.get();
+            return CreditCardResponse.builder()
+                    .cardNumber(mask(c.getCardNumber()))
+                    .creditLimit(c.getCreditLimit())
+                    .availableCredit(c.getAvailableCredit())
+                    .outstanding(c.getOutstandingAmount())
+                    .status("ACTIVE")
+                    .build();
+        }
+
+        return requestRepo
+                .findTopByCustomerIdOrderByRequestedAtDesc(customerId)
+                .map(req -> CreditCardResponse.builder()
+                        .cardNumber("N/A")
+                        .creditLimit(0)
+                        .availableCredit(0)
+                        .outstanding(0)
+                        .status(
+                                req.getStatus() == CardStatus.REJECTED
+                                        ? "REJECTED: " + req.getRejectionReason()
+                                        : "PENDING"
+                        )
+                        .build()
+                )
+                .orElse(CreditCardResponse.builder()
+                        .cardNumber("Not Issued")
+                        .creditLimit(0)
+                        .availableCredit(0)
+                        .outstanding(0)
+                        .status("NOT_ISSUED")
+                        .build());
+    }
+
 
     private List<LoanResponse> mapLoans(List<Loan> loans) {
         return loans.stream()
-                .map(this::mapLoan)
+                .map(loan -> LoanResponse.builder()
+                        .loanId(loan.getLoanId())
+                        .loanAmount(loan.getAmount() != null ? loan.getAmount().doubleValue() : 0)
+                        .emiAmount(loan.getEmiAmount())
+                        .interestRate(loan.getInterestRate())
+                        .tenureMonths(loan.getTenureMonths())
+                        .outstandingAmount(loan.getOutstandingAmount())
+                        .loanType(loan.getLoanType() != null ? loan.getLoanType().name() : null)
+                        .status(loan.getStatus())
+                        .build())
                 .toList();
     }
-
-    private LoanResponse mapLoan(Loan loan) {
-        return LoanResponse.builder()
-                .loanId(loan.getLoanId())
-                .loanAmount(
-                        loan.getAmount() != null ? loan.getAmount().doubleValue() : 0
-                )
-                .emiAmount(loan.getEmiAmount())
-                .interestRate(loan.getInterestRate())
-                .tenureMonths(loan.getTenureMonths())
-                .outstandingAmount(loan.getOutstandingAmount())
-                .loanType(
-                        loan.getLoanType() != null ? loan.getLoanType().name() : null
-                )
-                .status(loan.getStatus())
-                .build();
-    }
-
 
     private List<InsuranceResponse> mapInsurances(List<Insurance> insurances) {
         return insurances.stream()
-                .map(this::mapInsurance)
+                .map(ins -> InsuranceResponse.builder()
+                        .policyNumber(ins.getInsuranceId())
+                        .insuranceType(ins.getInsuranceType() != null ? ins.getInsuranceType().name() : null)
+                        .coverageAmount(ins.getCoverageAmount() != null ? ins.getCoverageAmount().doubleValue() : 0)
+                        .premiumAmount(ins.getPremiumAmount())
+                        .startDate(ins.getStartDate())
+                        .endDate(ins.getEndDate())
+                        .status(ins.getStatus())
+                        .build())
                 .toList();
     }
 
-    private InsuranceResponse mapInsurance(Insurance ins) {
-        return InsuranceResponse.builder()
-                .policyNumber(ins.getInsuranceId())
-                .insuranceType(
-                        ins.getInsuranceType() != null ? ins.getInsuranceType().name() : null
-                )
-                .coverageAmount(
-                        ins.getCoverageAmount() != null ? ins.getCoverageAmount().doubleValue() : 0
-                )
-                .premiumAmount(ins.getPremiumAmount())
-                .startDate(ins.getStartDate())
-                .endDate(ins.getEndDate())
-                .status(ins.getStatus())
-                .build();
-    }
-
-
-    private List<LinkedAccountResponse> mapLinkedAccounts(List<Account> accounts, String currentAccountNumber) {
+    private List<LinkedAccountResponse> mapLinkedAccounts(
+            List<Account> accounts,
+            String currentAccountNumber
+    ) {
         return accounts.stream()
                 .map(acc -> LinkedAccountResponse.builder()
                         .accountNumber(acc.getAccountNumber())
@@ -236,6 +237,32 @@ public class DashboardServiceImpl implements DashboardService {
                         .primary(acc.isPrimaryAccount())
                         .build())
                 .toList();
+    }
+
+    private NomineeResponse mapNominee(CustomerSummary customer) {
+        if (customer != null && customer.getNomineeName() != null) {
+            return NomineeResponse.builder()
+                    .name(customer.getNomineeName())
+                    .relation(customer.getNomineeRelation())
+                    .build();
+        }
+        return NomineeResponse.builder()
+                .name("Not Set")
+                .relation("N/A")
+                .build();
+    }
+
+    private KycStatusResponse mapKyc(CustomerSummary customer) {
+        if (customer != null) {
+            return KycStatusResponse.builder()
+                    .verified(customer.getKycStatus().equals("APPROVED"))
+                    .status(customer.getKycStatus())
+                    .build();
+        }
+        return KycStatusResponse.builder()
+                .verified(false)
+                .status("PENDING")
+                .build();
     }
 
     private String mask(String value) {

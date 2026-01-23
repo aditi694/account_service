@@ -11,7 +11,6 @@ public class CustomerClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Customer summary (KYC, name, etc.)
     public CustomerSummary getCustomer(UUID customerId) {
         return restTemplate.getForObject(
                 "http://localhost:8081/api/internal/customers/"
@@ -27,7 +26,19 @@ public class CustomerClient {
                     NomineeResponse.class
             );
         } catch (Exception e) {
-            e.printStackTrace(); // 🔴 IMPORTANT FOR DEBUG
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public BankBranchDto getBankBranchByIfsc(String ifscCode) {
+        try {
+            return restTemplate.getForObject(
+                    "http://localhost:8081/api/internal/bank-branches/ifsc/"
+                            + ifscCode,
+                    BankBranchDto.class
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }

@@ -10,8 +10,6 @@ public class CustomerSummary {
     private String fullName;
     private String email;
     private String kycStatus;
-
-    // ✅ Add nominee fields
     private String nomineeName;
     private String nomineeRelation;
 }

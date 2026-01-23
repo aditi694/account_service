@@ -14,8 +14,6 @@ public final class AccountValidator {
 
     private AccountValidator() {}
 
-    /* ================= LOGIN ================= */
-
     public static void validateLoginRequest(LoginRequest request) {
 
         log.info("Login validation started");
@@ -58,56 +56,6 @@ public final class AccountValidator {
         log.info("Account status validation passed");
     }
 
-//    /* ================= DEBIT ================= */
-//
-//    public static void validateDebit(Account account, DebitRequest request) {
-//
-//        log.info("Debit validation started for accountId={}",
-//                account.getId());
-//
-//        if (request == null) {
-//            throw BusinessException.badRequest("Debit request is required");
-//        }
-//
-//        if (request.getAmount() <= 0) {
-//            log.warn("Invalid debit amount: {}", request.getAmount());
-//            throw BusinessException.invalidAmount();
-//        }
-//
-//        if (account.getBalance().doubleValue() < request.getAmount()) {
-//            log.warn(
-//                    "Insufficient balance: available={}, requested={}",
-//                    account.getBalance(),
-//                    request.getAmount()
-//            );
-//            throw BusinessException.insufficientBalance();
-//        }
-//
-//        log.info("Debit validation passed for accountId={}",
-//                account.getId());
-//    }
-//
-//    /* ================= CREDIT ================= */
-//
-//    public static void validateCredit(Account account, CreditRequest request) {
-//
-//        log.info("Credit validation started for accountId={}",
-//                account.getId());
-//
-//        if (request == null) {
-//            throw BusinessException.badRequest("Credit request is required");
-//        }
-//
-//        if (request.getAmount() <= 0) {
-//            log.warn("Invalid credit amount: {}", request.getAmount());
-//            throw BusinessException.invalidAmount();
-//        }
-//
-//        log.info("Credit validation passed for accountId={}",
-//                account.getId());
-//    }
-
-    /* ================= BALANCE ================= */
 
     public static void validateBalanceAccess(Account account) {
 
@@ -125,7 +73,6 @@ public final class AccountValidator {
         }
     }
 
-    /* ================= PASSWORD ================= */
 
     public static void validatePasswordChange(
             String oldPassword,

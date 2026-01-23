@@ -32,14 +32,12 @@ public class AccountController {
         this.passwordService = passwordService;
     }
 
-    /* ================= AUTH ================= */
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         return accountService.login(request);
     }
 
-    /* ================= BALANCE ================= */
 
     @GetMapping("/balance")
     public BalanceResponse getBalance() {
@@ -47,7 +45,6 @@ public class AccountController {
         return balanceService.getBalance(user.getAccountId());
     }
 
-    /* ================= DASHBOARD ================= */
 
     @GetMapping("/dashboard")
     public AccountDashboardResponse dashboard() {
@@ -55,7 +52,6 @@ public class AccountController {
         return dashboardService.getDashboard(user);
     }
 
-    /* ================= PASSWORD ================= */
 
     @PostMapping("/change-password")
     public ChangePasswordResponse changePassword(
@@ -65,7 +61,6 @@ public class AccountController {
         return passwordService.changePassword(user.getAccountId(), request);
     }
 
-    /* ================= COMMON ================= */
 
     private AuthUser getUser() {
         return (AuthUser) SecurityContextHolder

@@ -10,7 +10,9 @@ public interface CreditCardService {
 
     List<CreditCardResponse> getCards(UUID customerId);
 
-    CreditCardIssueResponse issueCard(UUID customerId, double limit);
+    UUID applyCreditCard(UUID customerId, String cardHolderName);
 
-    void block(UUID cardId);
+    CreditCardIssueResponse approveRequest(UUID requestId);
+
+    void rejectRequest(UUID requestId, String reason);
 }

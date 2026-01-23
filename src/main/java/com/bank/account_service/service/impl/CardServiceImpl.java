@@ -26,22 +26,31 @@ public class CardServiceImpl implements CardService {
         this.accountRepo = accountRepo;
     }
 
-    // CUSTOMER
     @Override
     public DebitCardResponse getDebitCard(UUID accountId) {
 
-        return accountRepo.findById(accountId)
-                .flatMap(a -> debitRepo.findByAccountNumber(a.getAccountNumber()))
-                .map(this::map)
-                .orElse(DebitCardResponse.builder()
-                        .cardNumber("Not Issued")
-                        .expiry("N/A")
-                        .dailyLimit(0)
-                        .status("NOT_ISSUED")
-                        .build());
+        Account acc = accountRepo.findById(accountId)
+                .orElseThrow(BusinessException::accountNotFound);
+
+        DebitCard card = debitRepo.findByAccountNumber(acc.getAccountNumber())
+                .orElseGet(() -> {
+                    DebitCard newCard = DebitCard.builder()
+                            .accountNumber(acc.getAccountNumber())
+                            .cardNumber("5123" + System.currentTimeMillis())
+                            .expiryDate(LocalDate.now().plusYears(5))
+                            .dailyLimit(50000)
+                            .usedToday(0)
+                            .status(CardStatus.ACTIVE)
+                            .issuedDate(LocalDate.now())
+                            .build();
+
+                    debitRepo.save(newCard);
+                    return newCard;
+                });
+
+        return map(card);
     }
 
-    // ADMIN
     @Override
     public void issueDebitCard(UUID accountId) {
 

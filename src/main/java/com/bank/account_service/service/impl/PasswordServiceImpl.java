@@ -27,7 +27,6 @@ public class PasswordServiceImpl implements PasswordService {
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(BusinessException::accountNotFound);
 
-        // Verify old password
         if (!passwordEncoder.matches(request.getOldPassword(), account.getPasswordHash())) {
             throw BusinessException.badRequest("Old password is incorrect");
         }

@@ -31,13 +31,11 @@ public class InternalAccountServiceImpl implements InternalAccountService {
         System.out.println("Customer ID: " + request.getCustomerId());
         System.out.println("Account Type: " + request.getAccountType());
 
-        // Check if account already exists
         if (accountRepo.findByAccountNumber(request.getAccountNumber()).isPresent()) {
             System.out.println("⚠️ Account already exists, skipping creation");
             return;
         }
 
-        // Create account
         Account account = Account.builder()
                 .accountNumber(request.getAccountNumber())
                 .customerId(UUID.fromString(request.getCustomerId()))

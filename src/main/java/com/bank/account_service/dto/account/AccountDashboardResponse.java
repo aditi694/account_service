@@ -22,7 +22,7 @@ public class AccountDashboardResponse {
     private String accountNumber;
     private String accountType;
     private BigDecimal balance;
-
+    private BankBranchDetails bankBranch;
     private String status;
 
     private DebitCardResponse debitCard;
@@ -35,5 +35,14 @@ public class AccountDashboardResponse {
     private NomineeResponse nominee;
     private KycStatusResponse kyc;
 
-    private List<LinkedAccountResponse> linkedAccounts;  // ✅ Change to List
+    private List<LinkedAccountResponse> linkedAccounts;
+    @Data
+    @Builder
+    public static class BankBranchDetails {
+        private String ifscCode;
+        private String bankName;
+        private String branchName;
+        private String city;
+        private String address;
+    }
 }

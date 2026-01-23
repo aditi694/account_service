@@ -3,5 +3,8 @@ package com.bank.account_service.enums;
 public enum CardStatus {
     ACTIVE,
     BLOCKED,
-    EXPIRED
+    EXPIRED,
+    PENDING,
+    APPROVED,
+    REJECTED
 }

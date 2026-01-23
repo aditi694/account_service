@@ -55,13 +55,14 @@ public class LoanServiceImpl implements LoanService {
                 .loanId(loan.getLoanId())
                 .status(status)
                 .message(
-                        status == LoanStatus.ACTIVE
-                                ? "Loan approved and activated successfully"
-                                : "Loan requested successfully. Pending admin approval"
+                        autoApprove
+                                ? "Loan approved and activated automatically"
+                                : "Loan request submitted for admin approval"
                 )
                 .build();
     }
 
+    // ---------------- ADMIN ----------------
 
     @Override
     @Transactional
@@ -70,17 +71,15 @@ public class LoanServiceImpl implements LoanService {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> BusinessException.badRequest("Loan not found"));
 
-        LoanStatus oldStatus = loan.getStatus();
-
-        if (oldStatus != LoanStatus.REQUESTED) {
-            throw BusinessException.badRequest("Loan not pending approval");
+        if (loan.getStatus() != LoanStatus.REQUESTED) {
+            throw BusinessException.badRequest("Loan is not pending approval");
         }
 
         loan.setStatus(LoanStatus.ACTIVE);
 
         return LoanApprovalResponse.builder()
                 .loanId(loanId)
-                .previousStatus(oldStatus)
+                .previousStatus(LoanStatus.REQUESTED)
                 .currentStatus(LoanStatus.ACTIVE)
                 .message("Loan approved successfully")
                 .build();
@@ -93,18 +92,21 @@ public class LoanServiceImpl implements LoanService {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(BusinessException::loanNotFound);
 
-        LoanStatus oldStatus = loan.getStatus();
+        if (loan.getStatus() != LoanStatus.REQUESTED) {
+            throw BusinessException.badRequest("Loan is not pending approval");
+        }
 
         loan.setStatus(LoanStatus.REJECTED);
 
         return LoanApprovalResponse.builder()
                 .loanId(loanId)
-                .previousStatus(oldStatus)
+                .previousStatus(LoanStatus.REQUESTED)
                 .currentStatus(LoanStatus.REJECTED)
                 .message("Loan rejected successfully")
                 .build();
     }
 
+    // ---------------- CUSTOMER ----------------
 
     @Override
     public List<LoanResponse> getLoans(UUID customerId) {

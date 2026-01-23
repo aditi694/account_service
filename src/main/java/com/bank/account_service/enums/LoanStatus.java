@@ -1,8 +1,8 @@
 package com.bank.account_service.enums;
 
 public enum LoanStatus {
-    REQUESTED,     // customer ne request ki
-    APPROVED,      // admin / auto approved
+    REQUESTED,
+    APPROVED,
     REJECTED,
     ACTIVE,
     CLOSED,

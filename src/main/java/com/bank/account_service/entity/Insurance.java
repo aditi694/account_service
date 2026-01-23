@@ -23,7 +23,7 @@ public class Insurance {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @Enumerated(EnumType.STRING)   // 🔥 THIS IS MANDATORY
+    @Enumerated(EnumType.STRING)
     @Column(name = "insurance_type", nullable = false)
     private InsuranceType insuranceType;
 
@@ -34,7 +34,7 @@ public class Insurance {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    @Enumerated(EnumType.STRING)   // 🔥 THIS IS MANDATORY
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InsuranceStatus status;
 }

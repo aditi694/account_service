@@ -33,7 +33,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/internal/**").permitAll()
 //                        .requestMatchers("/customers/**").permitAll()
 
-                        // ✅ IMPORTANT!
                         .requestMatchers("/api/account/**").authenticated()
                         .anyRequest().permitAll()
                 )

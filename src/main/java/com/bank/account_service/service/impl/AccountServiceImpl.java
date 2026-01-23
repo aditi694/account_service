@@ -38,11 +38,9 @@ public class AccountServiceImpl implements AccountService {
         System.out.println("=== LOGIN ATTEMPT ===");
         System.out.println("Account Number: " + request.getAccountNumber());
 
-        // 1. Find account
         Account account = accountRepo.findByAccountNumber(request.getAccountNumber())
                 .orElseThrow(BusinessException::invalidCredentials);
 
-        // 2. Status checks
         if (account.getStatus() == AccountStatus.BLOCKED) {
             throw BusinessException.accountBlocked();
         }
@@ -51,13 +49,10 @@ public class AccountServiceImpl implements AccountService {
             throw BusinessException.accountClosed();
         }
 
-
-        // 3. Verify password
         if (!passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
             throw BusinessException.invalidCredentials();
         }
 
-        // 4. Generate token
         String token = jwtUtil.generate(
                 account.getId(),
                 account.getCustomerId(),
@@ -66,7 +61,6 @@ public class AccountServiceImpl implements AccountService {
 
         System.out.println("Login successful, token generated");
 
-        // 5. Return ONLY token
         return LoginResponse.builder()
                 .success(true)
                 .token(token)
@@ -107,7 +101,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepo.save(account);
     }
 
-    /* ================= CREDIT ================= */
+
 
     @Override
     public void credit(String accountNumber, BigDecimal amount) {
