@@ -18,6 +18,7 @@ public class AccountDashboardResponse {
 
     private UUID accountId;
     private UUID customerId;
+    private String customerName; // ✅ NEW: Customer name on dashboard
 
     private String accountNumber;
     private String accountType;
@@ -36,6 +37,7 @@ public class AccountDashboardResponse {
     private KycStatusResponse kyc;
 
     private List<LinkedAccountResponse> linkedAccounts;
+
     @Data
     @Builder
     public static class BankBranchDetails {

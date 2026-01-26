@@ -14,5 +14,4 @@ public interface InsuranceService {
 
     InsuranceRequestResponse requestInsurance(UUID accountId, IssueInsuranceRequest request);
 
-    InsuranceApprovalResponse approveInsurance(String insuranceId);
 }

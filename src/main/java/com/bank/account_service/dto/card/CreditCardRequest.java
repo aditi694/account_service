@@ -23,7 +23,6 @@ public class CreditCardRequest {
     private UUID id;
 
     private UUID customerId;
-
     private String cardHolderName;
 
     @Enumerated(EnumType.STRING)

@@ -10,4 +10,5 @@ public class DebitCardResponse {
     private String expiry;
     private int dailyLimit;
     private String status;
+    private String message;
 }

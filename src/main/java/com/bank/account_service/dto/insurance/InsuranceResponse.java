@@ -17,4 +17,5 @@ public class InsuranceResponse {
     private InsuranceStatus status;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String statusMessage;
 }

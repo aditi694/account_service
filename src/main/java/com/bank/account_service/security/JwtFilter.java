@@ -1,6 +1,7 @@
 package com.bank.account_service.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -35,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
+        // Skip login and internal endpoints
         if (path.startsWith("/api/account/login") || path.startsWith("/api/internal/")) {
             chain.doFilter(request, response);
             return;
@@ -49,19 +52,42 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             String token = header.substring(7);
-            AuthUser authUser = jwtUtil.getAuthUser(token);
+            Claims claims = jwtUtil.parse(token);
+
+            // Extract from token
+            UUID accountId = claims.get("accountId") != null
+                    ? UUID.fromString(claims.get("accountId", String.class))
+                    : null;
+            UUID customerId = UUID.fromString(claims.get("customerId", String.class));
+            String role = claims.get("role", String.class);
+
+            // ✅ KEY FIX: Ensure role has ROLE_ prefix
+            if (!role.startsWith("ROLE_")) {
+                role = "ROLE_" + role;
+            }
+
+            System.out.println("✅ Account Service Auth: " + role + " | Customer: " + customerId);
+
+            // Create AuthUser
+            AuthUser authUser = AuthUser.builder()
+                    .accountId(accountId)
+                    .customerId(customerId)
+                    .role(role)
+                    .build();
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             authUser,
                             null,
-                            List.of(new SimpleGrantedAuthority(authUser.getRole()))
+                            List.of(new SimpleGrantedAuthority(role))
                     );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
 
         } catch (Exception e) {
+            System.err.println("❌ Account Service JWT Auth Failed: " + e.getMessage());
+            e.printStackTrace();
             sendError(response, HttpStatus.UNAUTHORIZED, "Invalid or expired token");
         }
     }

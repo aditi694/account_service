@@ -29,12 +29,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/account/login").permitAll()
-                        .requestMatchers("/api/internal/**").permitAll()
+                                .requestMatchers("/api/account/login").permitAll()
+                                .requestMatchers("/api/internal/**").permitAll()
 //                        .requestMatchers("/customers/**").permitAll()
 
-                        .requestMatchers("/api/account/**").authenticated()
-                        .anyRequest().permitAll()
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                                .requestMatchers("/api/account/**").authenticated()
+                                .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

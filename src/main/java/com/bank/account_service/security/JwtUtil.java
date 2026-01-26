@@ -15,12 +15,15 @@ public class JwtUtil {
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public String generate(UUID accountId, UUID customerId, String role) {
+        // Store role WITHOUT ROLE_ prefix in token
+        String cleanRole = role.replace("ROLE_", "");
+
         return Jwts.builder()
                 .claim("accountId", accountId.toString())
                 .claim("customerId", customerId.toString())
-                .claim("role", role.startsWith("ROLE_") ? role : "ROLE_" + role.toUpperCase())
+                .claim("role", cleanRole.toUpperCase())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 hours
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -31,15 +34,5 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    public AuthUser getAuthUser(String token) {
-        Claims claims = parse(token);
-
-        return AuthUser.builder()
-                .accountId(UUID.fromString(claims.get("accountId", String.class)))
-                .customerId(UUID.fromString(claims.get("customerId", String.class)))
-                .role(claims.get("role", String.class))
-                .build();
     }
 }

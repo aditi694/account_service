@@ -8,12 +8,14 @@ import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;
 import com.bank.account_service.security.JwtUtil;
 import com.bank.account_service.service.AccountService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @Service
 @Transactional
 public class AccountServiceImpl implements AccountService {
@@ -35,8 +37,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public LoginResponse login(LoginRequest request) {
 
-        System.out.println("=== LOGIN ATTEMPT ===");
-        System.out.println("Account Number: " + request.getAccountNumber());
+        log.info("Customer login attempt for account: {}", request.getAccountNumber());
 
         Account account = accountRepo.findByAccountNumber(request.getAccountNumber())
                 .orElseThrow(BusinessException::invalidCredentials);
@@ -53,13 +54,14 @@ public class AccountServiceImpl implements AccountService {
             throw BusinessException.invalidCredentials();
         }
 
+        // ✅ Generate token with CUSTOMER role (without ROLE_ prefix - filter adds it)
         String token = jwtUtil.generate(
                 account.getId(),
                 account.getCustomerId(),
-                "ROLE_CUSTOMER"
+                "CUSTOMER"
         );
 
-        System.out.println("Login successful, token generated");
+        log.info("✅ Customer login successful for account: {}", request.getAccountNumber());
 
         return LoginResponse.builder()
                 .success(true)

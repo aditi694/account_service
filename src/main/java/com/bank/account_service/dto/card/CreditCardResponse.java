@@ -11,4 +11,5 @@ public class CreditCardResponse {
     private double availableCredit;
     private double outstanding;
     private String status;
+    private String message;
 }

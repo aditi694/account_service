@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
-@FeignClient(name = "TRANSACTION-SERVICE")
+@FeignClient(
+        name = "TRANSACTION-SERVICE",
+        path = "/api/internal/transactions"
+)
 public interface TransactionClient {
 
-    @GetMapping("/api/internal/transactions/total-debit")
+    @GetMapping("/total-debit")
     double getTotalDebit(@RequestParam UUID customerId);
 }

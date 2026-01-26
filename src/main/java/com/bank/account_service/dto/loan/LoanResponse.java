@@ -16,4 +16,5 @@ public class LoanResponse {
     private Double emiAmount;
     private Double outstandingAmount;
     private LoanStatus status;
+    private String statusMessage;
 }

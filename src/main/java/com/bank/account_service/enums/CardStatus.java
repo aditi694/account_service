@@ -6,5 +6,5 @@ public enum CardStatus {
     EXPIRED,
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,CANCELLED
 }
