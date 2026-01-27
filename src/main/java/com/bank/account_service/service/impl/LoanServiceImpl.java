@@ -41,7 +41,6 @@ public class LoanServiceImpl implements LoanService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(BusinessException::accountNotFound);
 
-        // Calculate loan details
         double interestRate = calculateInterestRate(request.getLoanType());
         int tenureMonths = calculateTenure(request.getLoanType());
         double emiAmount = calculateEMI(
@@ -50,7 +49,6 @@ public class LoanServiceImpl implements LoanService {
                 tenureMonths
         );
 
-        // Auto-approve for small amounts
         boolean autoApprove = request.getAmount().doubleValue() <= AUTO_APPROVAL_LIMIT;
         LoanStatus status = autoApprove ? LoanStatus.ACTIVE : LoanStatus.REQUESTED;
 

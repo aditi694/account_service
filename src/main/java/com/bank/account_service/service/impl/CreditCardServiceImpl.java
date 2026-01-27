@@ -37,8 +37,6 @@ public class CreditCardServiceImpl implements CreditCardService {
     public UUID applyCreditCard(UUID customerId, String cardHolderName) {
 
         log.info("Credit card application started for customer: {}", customerId);
-
-        // Check if customer already has active credit card
         boolean hasActiveCard = creditCardRepo
                 .findByCustomerId(customerId)
                 .stream()
@@ -48,7 +46,6 @@ public class CreditCardServiceImpl implements CreditCardService {
             throw BusinessException.conflict("You already have an active credit card");
         }
 
-        // Check if there's pending request
         boolean hasPendingRequest = requestRepo
                 .existsByCustomerIdAndStatus(customerId, CardStatus.PENDING);
 
@@ -56,19 +53,16 @@ public class CreditCardServiceImpl implements CreditCardService {
             throw BusinessException.conflict("You already have a pending credit card request");
         }
 
-        // Fetch total transaction amount
         double totalDebit = fetchTotalTransactions(customerId);
 
         log.info("Customer {} transaction history: ₹{}", customerId, totalDebit);
 
-        // Auto-approve if transaction > 25000
         if (totalDebit >= AUTO_APPROVAL_THRESHOLD) {
             log.info("Auto-approving credit card for customer: {}", customerId);
             issueCard(customerId, cardHolderName);
             return null; // No request created
         }
 
-        // Create request for admin approval
         CreditCardRequest request = CreditCardRequest.builder()
                 .customerId(customerId)
                 .cardHolderName(cardHolderName)
@@ -95,10 +89,8 @@ public class CreditCardServiceImpl implements CreditCardService {
             throw BusinessException.badRequest("Request is not in pending status");
         }
 
-        // Issue credit card
         CreditCard card = issueCard(request.getCustomerId(), request.getCardHolderName());
 
-        // Update request status
         request.setStatus(CardStatus.APPROVED);
         request.setApprovedLimit(card.getCreditLimit());
         request.setDecidedAt(LocalDateTime.now());
@@ -150,7 +142,6 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .findFirst()
                 .map(this::mapToResponse)
                 .orElseGet(() -> {
-                    // Check latest request
                     return requestRepo.findTopByCustomerIdOrderByRequestedAtDesc(customerId)
                             .map(req -> CreditCardResponse.builder()
                                     .cardNumber("Not Issued")
@@ -175,8 +166,6 @@ public class CreditCardServiceImpl implements CreditCardService {
     public List<CreditCardRequest> getPendingRequests() {
         return requestRepo.findByStatus(CardStatus.PENDING);
     }
-
-    // Helper methods
 
     private CreditCard issueCard(UUID customerId, String cardHolderName) {
 

@@ -56,7 +56,6 @@ public class InternalAccountServiceImpl implements InternalAccountService {
         Account savedAccount = accountRepo.save(account);
         log.info("✅ Account created successfully: {}", savedAccount.getId());
 
-        // ✅ AUTO-ISSUE DEBIT CARD
         issueDebitCardAutomatically(savedAccount);
 
         log.info("✅ Account setup completed with debit card");
@@ -79,12 +78,10 @@ public class InternalAccountServiceImpl implements InternalAccountService {
 
         } catch (Exception e) {
             log.error("Failed to issue debit card", e);
-            // Don't fail account creation if card issuance fails
         }
     }
 
     private String generateCardNumber() {
-        // Using Visa format: 4xxx xxxx xxxx xxxx
         return "4532" + System.currentTimeMillis();
     }
 }

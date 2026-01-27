@@ -21,8 +21,6 @@ public class LoanController {
 
     private final LoanService service;
 
-    /* ================= CUSTOMER ================= */
-
     @PostMapping("/account/loans/request")
     public ResponseEntity<LoanRequestResponse> requestLoan(
             @RequestBody IssueLoanRequest request
@@ -40,8 +38,6 @@ public class LoanController {
                 service.getLoans(user.getCustomerId())
         );
     }
-
-    /* ================= ADMIN ================= */
 
     @GetMapping("/admin/loans/pending")
     public ResponseEntity<?> getPendingLoans() {
@@ -92,8 +88,6 @@ public class LoanController {
                 service.rejectLoan(loanId)
         );
     }
-
-    /* ================= SECURITY HELPERS ================= */
 
     private AuthUser getUser() {
         Authentication authentication =

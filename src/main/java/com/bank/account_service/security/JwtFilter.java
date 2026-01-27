@@ -37,7 +37,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Skip login and internal endpoints
         if (path.startsWith("/api/account/login") || path.startsWith("/api/internal/")) {
             chain.doFilter(request, response);
             return;
@@ -61,14 +60,12 @@ public class JwtFilter extends OncePerRequestFilter {
             UUID customerId = UUID.fromString(claims.get("customerId", String.class));
             String role = claims.get("role", String.class);
 
-            // ✅ KEY FIX: Ensure role has ROLE_ prefix
             if (!role.startsWith("ROLE_")) {
                 role = "ROLE_" + role;
             }
 
             System.out.println("✅ Account Service Auth: " + role + " | Customer: " + customerId);
 
-            // Create AuthUser
             AuthUser authUser = AuthUser.builder()
                     .accountId(accountId)
                     .customerId(customerId)

@@ -54,7 +54,6 @@ public class AccountServiceImpl implements AccountService {
             throw BusinessException.invalidCredentials();
         }
 
-        // ✅ Generate token with CUSTOMER role (without ROLE_ prefix - filter adds it)
         String token = jwtUtil.generate(
                 account.getId(),
                 account.getCustomerId(),
@@ -102,8 +101,6 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepo.save(account);
     }
-
-
 
     @Override
     public void credit(String accountNumber, BigDecimal amount) {

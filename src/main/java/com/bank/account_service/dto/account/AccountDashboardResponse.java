@@ -18,7 +18,7 @@ public class AccountDashboardResponse {
 
     private UUID accountId;
     private UUID customerId;
-    private String customerName; // ✅ NEW: Customer name on dashboard
+    private String customerName;
 
     private String accountNumber;
     private String accountType;

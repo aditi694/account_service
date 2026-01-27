@@ -26,7 +26,7 @@ public class CreditCardRequest {
     private String cardHolderName;
 
     @Enumerated(EnumType.STRING)
-    private CardStatus status; // PENDING / APPROVED / REJECTED
+    private CardStatus status;
 
     private Double approvedLimit;
     private String rejectionReason;

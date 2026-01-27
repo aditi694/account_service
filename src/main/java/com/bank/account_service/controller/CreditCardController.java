@@ -31,7 +31,6 @@ public class CreditCardController {
         UUID requestId =
                 service.applyCreditCard(user.getCustomerId(), request.getCardHolderName());
 
-        // AUTO APPROVED
         if (requestId == null) {
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -45,7 +44,6 @@ public class CreditCardController {
             ));
         }
 
-        // PENDING
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
                 "success", true,
                 "status", "PENDING",
@@ -66,8 +64,6 @@ public class CreditCardController {
                 service.getCardStatus(user.getCustomerId())
         );
     }
-
-    // ================= ADMIN =================
 
     @GetMapping("/admin/credit-cards/pending")
     public ResponseEntity<Map<String, Object>> getPendingRequests() {
@@ -138,7 +134,6 @@ public class CreditCardController {
         ));
     }
 
-    // ================= HELPERS =================
 
     private AuthUser getUser() {
         Object principal = SecurityContextHolder

@@ -75,8 +75,6 @@ public class DashboardServiceImpl implements DashboardService {
                 .build();
     }
 
-    // ========== DEBIT CARD STATUS ==========
-
     private DebitCardResponse getDebitCardStatus(String accountNumber) {
         return debitRepo.findByAccountNumber(accountNumber)
                 .map(this::mapDebitCard)
@@ -100,11 +98,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .build();
     }
 
-    // ========== CREDIT CARD STATUS (FIXED) ==========
 
     private CreditCardResponse getCreditCardStatus(UUID customerId) {
 
-        // Check for active credit card
         Optional<CreditCard> activeCard = creditCardRepo
                 .findByCustomerId(customerId)
                 .stream()
@@ -123,7 +119,6 @@ public class DashboardServiceImpl implements DashboardService {
                     .build();
         }
 
-        // Check for pending or rejected request
         Optional<CreditCardRequest> latestRequest = requestRepo
                 .findTopByCustomerIdOrderByRequestedAtDesc(customerId);
 
@@ -146,7 +141,6 @@ public class DashboardServiceImpl implements DashboardService {
             };
         }
 
-        // No application yet
         return buildNotAppliedResponse();
     }
 
@@ -156,8 +150,6 @@ public class DashboardServiceImpl implements DashboardService {
                 .message("Apply for a credit card to enjoy exclusive benefits and rewards")
                 .build();
     }
-
-    // ========== LOANS ==========
 
     private List<LoanResponse> getCustomerLoans(UUID customerId) {
         return loanRepo.findByAccount_CustomerId(customerId)
@@ -192,8 +184,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ========== INSURANCE ==========
-
     private List<InsuranceResponse> getCustomerInsurances(UUID customerId) {
         return insuranceRepo.findByAccount_CustomerId(customerId)
                 .stream()
@@ -226,7 +216,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ========== HELPER METHODS ==========
 
     private CustomerSummary fetchCustomerSummary(UUID customerId) {
         try {
@@ -253,7 +242,7 @@ public class DashboardServiceImpl implements DashboardService {
             return AccountDashboardResponse.BankBranchDetails.builder()
                     .ifscCode("N/A")
                     .bankName("N/A")
-                    .branchName("N/A") // ✅ ADD
+                    .branchName("N/A")
                     .city("N/A")
                     .address("N/A")
                     .build();
@@ -262,7 +251,7 @@ public class DashboardServiceImpl implements DashboardService {
         return AccountDashboardResponse.BankBranchDetails.builder()
                 .ifscCode(dto.ifscCode())
                 .bankName(dto.bankName())
-                .branchName(dto.branchName()) // ✅ NOW WORKS
+                .branchName(dto.branchName())
                 .city(dto.city())
                 .address(dto.address())
                 .build();
