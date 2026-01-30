@@ -1,17 +1,16 @@
 package com.bank.account_service.controller;
 
 import com.bank.account_service.dto.card.*;
+import com.bank.account_service.entity.CreditCardRequest;
 import com.bank.account_service.security.AuthUser;
 import com.bank.account_service.service.CreditCardService;
+import com.bank.account_service.util.AppConstants;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -20,136 +19,87 @@ public class CreditCardController {
 
     private final CreditCardService service;
 
-    // ================= CUSTOMER =================
-
     @PostMapping("/account/credit-cards/apply")
     public ResponseEntity<Map<String, Object>> apply(
+            @AuthenticationPrincipal AuthUser user,
             @RequestBody CreditCardApplyRequest request
     ) {
-        AuthUser user = getUser();
-
         UUID requestId =
                 service.applyCreditCard(user.getCustomerId(), request.getCardHolderName());
 
         if (requestId == null) {
             return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "status", "APPROVED",
-                    "title", "Congratulations 🎉",
-                    "message", "Your credit card has been approved instantly",
-                    "description",
-                    "Based on your transaction history, your credit card is approved automatically.",
-                    "nextSteps",
-                    "Check your dashboard to view card details and available limit"
+                    AppConstants.SUCCESS, true,
+                    AppConstants.STATUS, AppConstants.STATUS_APPROVED,
+                    AppConstants.TITLE, AppConstants.TITLE_APPROVED,
+                    AppConstants.MESSAGE, AppConstants.MSG_APPROVED,
+                    AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED,
+                    AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED
             ));
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
-                "success", true,
-                "status", "PENDING",
-                "requestId", requestId.toString(),
-                "title", "Application Submitted",
-                "message", "Your credit card application is under review",
-                "description",
-                "Our team is reviewing your application. Approval usually takes 2–3 business days.",
-                "nextSteps",
-                "You will receive SMS and Email updates"
+                AppConstants.SUCCESS, true,
+                AppConstants.STATUS, AppConstants.STATUS_PENDING,
+                AppConstants.REQUEST_ID, requestId.toString(),
+                AppConstants.TITLE, AppConstants.TITLE_PENDING,
+                AppConstants.MESSAGE, AppConstants.MSG_PENDING,
+                AppConstants.DESCRIPTION, AppConstants.DESC_PENDING,
+                AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING
         ));
     }
 
     @GetMapping("/account/credit-cards/status")
-    public ResponseEntity<CreditCardResponse> getStatus() {
-        AuthUser user = getUser();
-        return ResponseEntity.ok(
-                service.getCardStatus(user.getCustomerId())
-        );
+    public CreditCardResponse getStatus(
+            @AuthenticationPrincipal AuthUser user
+    ) {
+        return service.getCreditCardSummary(user.getCustomerId());
     }
 
+    // -------- ADMIN --------
+
     @GetMapping("/admin/credit-cards/pending")
-    public ResponseEntity<Map<String, Object>> getPendingRequests() {
-        ensureAdmin();
+    public ResponseEntity<Map<String, Object>> pending(
+            @AuthenticationPrincipal AuthUser user
+    ) {
+        ensureAdmin(user);
 
         List<CreditCardRequest> pending = service.getPendingRequests();
 
-        if (pending.isEmpty()) {
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "No pending credit card applications",
-                    "description", "All applications have been processed",
-                    "count", 0,
-                    "requests", pending
-            ));
-        }
-
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message",
-                pending.size() + " credit card application(s) pending approval",
-                "description",
-                "Review customer profile and credit history before approval",
-                "count", pending.size(),
-                "requests", pending
+                AppConstants.SUCCESS, true,
+                AppConstants.COUNT, pending.size(),
+                AppConstants.REQUESTS, pending
         ));
     }
 
     @PostMapping("/admin/credit-cards/approve/{requestId}")
-    public ResponseEntity<Map<String, Object>> approve(
+    public Map<String, Object> approve(
+            @AuthenticationPrincipal AuthUser user,
             @PathVariable UUID requestId
     ) {
-        ensureAdmin();
+        ensureAdmin(user);
+        CreditCardIssueResponse response = service.approveRequest(requestId);
 
-        CreditCardIssueResponse response =
-                service.approveRequest(requestId);
-
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "title", "Credit Card Approved",
-                "message", "Credit card has been issued successfully",
-                "description",
-                "Customer can now view credit card details in dashboard",
-                "data", response,
-                "notification",
-                "Customer notified via SMS and Email"
-        ));
+        return Map.of(
+                AppConstants.SUCCESS, true,
+                AppConstants.DATA, response
+        );
     }
 
     @PostMapping("/admin/credit-cards/reject/{requestId}")
-    public ResponseEntity<Map<String, Object>> reject(
+    public Map<String, Object> reject(
+            @AuthenticationPrincipal AuthUser user,
             @PathVariable UUID requestId,
             @RequestParam String reason
     ) {
-        ensureAdmin();
-
+        ensureAdmin(user);
         service.rejectRequest(requestId, reason);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "title", "Application Rejected",
-                "message", "Credit card application rejected",
-                "reason", reason,
-                "description",
-                "Customer has been notified about the rejection",
-                "notification",
-                "Customer notified via SMS and Email"
-        ));
+        return Map.of(AppConstants.SUCCESS, true);
     }
 
-
-    private AuthUser getUser() {
-        Object principal = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        if (principal instanceof AuthUser authUser) {
-            return authUser;
-        }
-
-        throw new RuntimeException("User not authenticated");
-    }
-
-    private void ensureAdmin() {
-        AuthUser user = getUser();
+    private void ensureAdmin(AuthUser user) {
         if (!user.isAdmin()) {
             throw new RuntimeException("Admin access required");
         }

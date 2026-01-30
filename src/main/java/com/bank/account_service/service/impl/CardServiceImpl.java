@@ -50,30 +50,30 @@ public class CardServiceImpl implements CardService {
 
         return map(card);
     }
-
-    @Override
-    public void issueDebitCard(UUID accountId) {
-
-        Account acc = accountRepo.findById(accountId)
-                .orElseThrow(BusinessException::accountNotFound);
-
-        debitRepo.findByAccountNumber(acc.getAccountNumber())
-                .ifPresent(c -> {
-                    throw BusinessException.badRequest("Debit card already issued");
-                });
-
-        DebitCard card = DebitCard.builder()
-                .accountNumber(acc.getAccountNumber())
-                .cardNumber("5123" + System.currentTimeMillis())
-                .expiryDate(LocalDate.now().plusYears(5))
-                .dailyLimit(50000)
-                .usedToday(0)
-                .status(CardStatus.ACTIVE)
-                .issuedDate(LocalDate.now())
-                .build();
-
-        debitRepo.save(card);
-    }
+//
+//    @Override
+//    public void issueDebitCard(UUID accountId) {
+//
+//        Account acc = accountRepo.findById(accountId)
+//                .orElseThrow(BusinessException::accountNotFound);
+//
+//        debitRepo.findByAccountNumber(acc.getAccountNumber())
+//                .ifPresent(c -> {
+//                    throw BusinessException.badRequest("Debit card already issued");
+//                });
+//
+//        DebitCard card = DebitCard.builder()
+//                .accountNumber(acc.getAccountNumber())
+//                .cardNumber("5123" + System.currentTimeMillis())
+//                .expiryDate(LocalDate.now().plusYears(5))
+//                .dailyLimit(50000)
+//                .usedToday(0)
+//                .status(CardStatus.ACTIVE)
+//                .issuedDate(LocalDate.now())
+//                .build();
+//
+//        debitRepo.save(card);
+//    }
 
     @Override
     public void blockDebitCard(UUID accountId) {

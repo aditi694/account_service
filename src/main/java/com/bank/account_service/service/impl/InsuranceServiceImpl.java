@@ -19,6 +19,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import static com.bank.account_service.util.AppConstants.INSURANCE_ACTIVE_MSG;
+
 @Slf4j
 @Service
 @Transactional
@@ -53,7 +55,7 @@ public class InsuranceServiceImpl implements InsuranceService {
         return InsuranceRequestResponse.builder()
                 .insuranceId(insurance.getInsuranceId())
                 .status(InsuranceStatus.ACTIVE)
-                .message("Your insurance has been approved and activated successfully")
+                .message(INSURANCE_ACTIVE_MSG)
                 .build();
     }
 

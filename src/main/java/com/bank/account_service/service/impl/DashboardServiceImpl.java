@@ -1,22 +1,20 @@
 package com.bank.account_service.service.impl;
+import static com.bank.account_service.util.AppConstants.*;
 
 import com.bank.account_service.dto.account.AccountDashboardResponse;
-import com.bank.account_service.dto.card.CreditCardRequest;
-import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.card.DebitCardResponse;
 import com.bank.account_service.dto.client.BankBranchDto;
 import com.bank.account_service.dto.client.CustomerClient;
-import com.bank.account_service.dto.client.CustomerSummary;
+import com.bank.account_service.dto.client.CustomerSnapshot;
 import com.bank.account_service.dto.insurance.InsuranceResponse;
 import com.bank.account_service.dto.loan.LoanResponse;
-import com.bank.account_service.dto.response.*;
 import com.bank.account_service.entity.*;
-import com.bank.account_service.enums.CardStatus;
 import com.bank.account_service.enums.InsuranceStatus;
 import com.bank.account_service.enums.LoanStatus;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.*;
 import com.bank.account_service.security.AuthUser;
+import com.bank.account_service.service.CreditCardService;
 import com.bank.account_service.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -35,121 +32,70 @@ public class DashboardServiceImpl implements DashboardService {
 
     private final AccountRepository accountRepo;
     private final DebitCardRepository debitRepo;
-    private final CreditCardRepository creditCardRepo;
-    private final CreditCardRequestRepository requestRepo;
     private final LoanRepository loanRepo;
     private final InsuranceRepository insuranceRepo;
     private final CustomerClient customerClient;
-
+    private final CreditCardService creditCardService;
 
     @Override
     public AccountDashboardResponse getDashboard(AuthUser user) {
 
-        log.info("Building dashboard for customer: {}", user.getCustomerId());
-
         Account account = accountRepo.findById(user.getAccountId())
                 .orElseThrow(BusinessException::accountNotFound);
 
-        CustomerSummary customer = fetchCustomerSummary(user.getCustomerId());
+        CustomerSnapshot customer = fetchCustomerSummary(user.getCustomerId());
         BankBranchDto bankBranch = fetchBankBranch(account.getIfscCode());
 
         return AccountDashboardResponse.builder()
                 .accountId(account.getId())
                 .customerId(user.getCustomerId())
-                .customerName(customer != null ? customer.getFullName() : "N/A") // ✅ CUSTOMER NAME
+                .customerName(customer != null ? customer.getFullName() : "N/A")
                 .accountNumber(account.getAccountNumber())
                 .accountType(account.getAccountType().name())
                 .balance(account.getBalance())
                 .status(account.getStatus().name())
-                .bankBranch(buildBankBranchDetails(bankBranch)) // ✅ FIXED BANK BRANCH
+
+                .bankBranch(buildBankBranch(bankBranch))
                 .debitCard(getDebitCardStatus(account.getAccountNumber()))
-                .creditCard(getCreditCardStatus(user.getCustomerId())) // ✅ FIXED CREDIT CARD
+                .creditCard(creditCardService.getCreditCardSummary(user.getCustomerId()))
+
                 .loans(getCustomerLoans(user.getCustomerId()))
                 .insurances(getCustomerInsurances(user.getCustomerId()))
+
                 .limits(buildLimits())
                 .nominee(buildNominee(customer))
                 .kyc(buildKycStatus(customer))
+
                 .linkedAccounts(buildLinkedAccounts(
                         accountRepo.findByCustomerId(user.getCustomerId())
                 ))
                 .build();
     }
 
+    // ================= DEBIT CARD =================
+
     private DebitCardResponse getDebitCardStatus(String accountNumber) {
         return debitRepo.findByAccountNumber(accountNumber)
-                .map(this::mapDebitCard)
+                .map(card -> DebitCardResponse.builder()
+                        .cardNumber(maskCardNumber(card.getCardNumber()))
+                        .expiry(card.getExpiryDate() != null
+                                ? card.getExpiryDate().toString()
+                                : "N/A")
+                        .dailyLimit(card.getDailyLimit())
+                        .status(card.getStatus().name())
+                        .message("Your debit card is active")
+                        .build()
+                )
                 .orElse(DebitCardResponse.builder()
                         .cardNumber("Not Issued")
                         .expiry("N/A")
                         .dailyLimit(0)
                         .status("NOT_ISSUED")
                         .message("Contact support to issue debit card")
-                        .build()
-                );
+                        .build());
     }
 
-    private DebitCardResponse mapDebitCard(DebitCard card) {
-        return DebitCardResponse.builder()
-                .cardNumber(maskCardNumber(card.getCardNumber()))
-                .expiry(card.getExpiryDate() != null ? card.getExpiryDate().toString() : "N/A")
-                .dailyLimit(card.getDailyLimit())
-                .status(card.getStatus().name())
-                .message("Your debit card is active")
-                .build();
-    }
-
-
-    private CreditCardResponse getCreditCardStatus(UUID customerId) {
-
-        Optional<CreditCard> activeCard = creditCardRepo
-                .findByCustomerId(customerId)
-                .stream()
-                .filter(card -> card.getStatus() == CardStatus.ACTIVE)
-                .findFirst();
-
-        if (activeCard.isPresent()) {
-            CreditCard card = activeCard.get();
-            return CreditCardResponse.builder()
-                    .cardNumber(maskCardNumber(card.getCardNumber()))
-                    .creditLimit(card.getCreditLimit())
-                    .availableCredit(card.getAvailableCredit())
-                    .outstanding(card.getOutstandingAmount())
-                    .status("ACTIVE")
-                    .message("Your credit card is active and ready to use")
-                    .build();
-        }
-
-        Optional<CreditCardRequest> latestRequest = requestRepo
-                .findTopByCustomerIdOrderByRequestedAtDesc(customerId);
-
-        if (latestRequest.isPresent()) {
-            CreditCardRequest req = latestRequest.get();
-
-            return switch (req.getStatus()) {
-                case PENDING -> CreditCardResponse.builder()
-                        .status("PENDING_APPROVAL")
-                        .message("Your credit card application is under review")
-                        .build();
-
-                case REJECTED -> CreditCardResponse.builder()
-                        .status("REJECTED")
-                        .message("Application rejected. Reason: " +
-                                (req.getRejectionReason() != null ? req.getRejectionReason() : "Not specified"))
-                        .build();
-
-                default -> buildNotAppliedResponse();
-            };
-        }
-
-        return buildNotAppliedResponse();
-    }
-
-    private CreditCardResponse buildNotAppliedResponse() {
-        return CreditCardResponse.builder()
-                .status("NOT_APPLIED")
-                .message("Apply for a credit card to enjoy exclusive benefits and rewards")
-                .build();
-    }
+    // ================= LOANS (FIXED) =================
 
     private List<LoanResponse> getCustomerLoans(UUID customerId) {
         return loanRepo.findByAccount_CustomerId(customerId)
@@ -159,30 +105,44 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private LoanResponse mapLoan(Loan loan) {
-        String statusMessage = buildLoanStatusMessage(loan.getStatus());
 
+        LoanStatus status = loan.getStatus();
+
+        // ❌ REQUESTED / REJECTED → ONLY MESSAGE
+        if (status == LoanStatus.REQUESTED || status == LoanStatus.REJECTED) {
+            return LoanResponse.builder()
+                    .loanId(loan.getLoanId())
+                    .loanType(loan.getLoanType().name())
+                    .status(status)
+                    .statusMessage(buildLoanStatusMessage(status))
+                    .build();
+        }
+
+        // ✅ ACTIVE / CLOSED → FULL DETAILS
         return LoanResponse.builder()
                 .loanId(loan.getLoanId())
-                .loanType(loan.getLoanType() != null ? loan.getLoanType().name() : "UNKNOWN")
-                .loanAmount(loan.getAmount() != null ? loan.getAmount().doubleValue() : 0.0)
+                .loanType(loan.getLoanType().name())
+                .loanAmount(loan.getAmount().doubleValue())
                 .interestRate(loan.getInterestRate())
                 .tenureMonths(loan.getTenureMonths())
                 .emiAmount(loan.getEmiAmount())
                 .outstandingAmount(loan.getOutstandingAmount())
-                .status(loan.getStatus())
-                .statusMessage(statusMessage)
+                .status(status)
+                .statusMessage(buildLoanStatusMessage(status))
                 .build();
     }
 
     private String buildLoanStatusMessage(LoanStatus status) {
         return switch (status) {
-            case ACTIVE -> "Your loan is active. Pay EMI on time to maintain good credit score";
-            case REQUESTED -> "Your loan application is under admin review. You'll be notified soon";
-            case REJECTED -> "Your loan application was rejected. Please contact support";
-            case CLOSED -> "Congratulations! Your loan has been successfully closed";
-            case DEFAULTED -> "Please contact support immediately regarding your loan";
+            case ACTIVE -> LOAN_ACTIVE_MSG;
+            case REQUESTED -> LOAN_REQUESTED_MSG;
+            case REJECTED -> LOAN_REJECTED_MSG;
+            case CLOSED -> LOAN_CLOSED_MSG;
+            case DEFAULTED -> LOAN_DEFAULTED_MSG;
         };
     }
+
+    // ================= INSURANCE =================
 
     private List<InsuranceResponse> getCustomerInsurances(UUID customerId) {
         return insuranceRepo.findByAccount_CustomerId(customerId)
@@ -192,32 +152,31 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private InsuranceResponse mapInsurance(Insurance ins) {
-        String statusMessage = buildInsuranceStatusMessage(ins.getStatus());
-
         return InsuranceResponse.builder()
                 .policyNumber(ins.getInsuranceId())
-                .insuranceType(ins.getInsuranceType() != null ? ins.getInsuranceType().name() : "UNKNOWN")
-                .coverageAmount(ins.getCoverageAmount() != null ? ins.getCoverageAmount().doubleValue() : 0.0)
+                .insuranceType(ins.getInsuranceType().name())
+                .coverageAmount(ins.getCoverageAmount().doubleValue())
                 .premiumAmount(ins.getPremiumAmount())
                 .startDate(ins.getStartDate())
                 .endDate(ins.getEndDate())
                 .status(ins.getStatus())
-                .statusMessage(statusMessage)
+                .statusMessage(buildInsuranceStatusMessage(ins.getStatus()))
                 .build();
     }
 
     private String buildInsuranceStatusMessage(InsuranceStatus status) {
         return switch (status) {
-            case ACTIVE -> "Your insurance policy is active and providing coverage";
-            case REQUESTED -> "Your insurance request is under review";
-            case EXPIRED -> "Your policy has expired. Please renew to continue coverage";
-            case REJECTED -> "null";
-            case CANCELLED -> "This insurance policy has been cancelled";
+            case ACTIVE -> INSURANCE_ACTIVE_MSG;
+            case REQUESTED -> INSURANCE_REQUESTED_MSG;
+            case REJECTED -> INSURANCE_REJECTED_MSG;
+            case CANCELLED -> INSURANCE_CANCELLED_MSG;
+            case EXPIRED -> INSURANCE_EXPIRED_MSG;
         };
     }
 
+    // ================= COMMON =================
 
-    private CustomerSummary fetchCustomerSummary(UUID customerId) {
+    private CustomerSnapshot fetchCustomerSummary(UUID customerId) {
         try {
             return customerClient.getCustomer(customerId);
         } catch (Exception e) {
@@ -226,18 +185,52 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
-    private BankBranchDto fetchBankBranch(String ifscCode) {
-        try {
-            if (ifscCode != null && !ifscCode.isBlank()) {
-                return customerClient.getBankBranch(ifscCode);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to fetch bank branch for IFSC: {}", ifscCode, e);
-        }
-        return null;
+    private AccountDashboardResponse.Limits buildLimits() {
+        return AccountDashboardResponse.Limits.builder()
+                .dailyTransactionLimit(100_000)
+                .perTransactionLimit(50_000)
+                .build();
     }
 
-    private AccountDashboardResponse.BankBranchDetails buildBankBranchDetails(BankBranchDto dto) {
+    private AccountDashboardResponse.Nominee buildNominee(CustomerSnapshot customer) {
+        if (customer != null && customer.getNomineeName() != null) {
+            return AccountDashboardResponse.Nominee.builder()
+                    .name(customer.getNomineeName())
+                    .relation(customer.getNomineeRelation())
+                    .build();
+        }
+        return AccountDashboardResponse.Nominee.builder()
+                .name("Not Set")
+                .relation("N/A")
+                .build();
+    }
+
+    private AccountDashboardResponse.KycStatus buildKycStatus(CustomerSnapshot customer) {
+        if (customer != null) {
+            boolean verified = "APPROVED".equals(customer.getKycStatus());
+            return AccountDashboardResponse.KycStatus.builder()
+                    .verified(verified)
+                    .status(customer.getKycStatus())
+                    .build();
+        }
+        return AccountDashboardResponse.KycStatus.builder()
+                .verified(false)
+                .status("PENDING")
+                .build();
+    }
+
+    private List<AccountDashboardResponse.LinkedAccount> buildLinkedAccounts(List<Account> accounts) {
+        return accounts.stream()
+                .map(acc -> AccountDashboardResponse.LinkedAccount.builder()
+                        .accountNumber(acc.getAccountNumber())
+                        .accountType(acc.getAccountType().name())
+                        .balance(acc.getBalance().doubleValue())
+                        .primary(acc.isPrimaryAccount())
+                        .build())
+                .toList();
+    }
+
+    private AccountDashboardResponse.BankBranchDetails buildBankBranch(BankBranchDto dto) {
         if (dto == null) {
             return AccountDashboardResponse.BankBranchDetails.builder()
                     .ifscCode("N/A")
@@ -249,64 +242,24 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         return AccountDashboardResponse.BankBranchDetails.builder()
-                .ifscCode(dto.ifscCode())
-                .bankName(dto.bankName())
-                .branchName(dto.branchName())
-                .city(dto.city())
-                .address(dto.address())
+                .ifscCode(dto.getIfscCode())
+                .bankName(dto.getBankName())
+                .branchName(dto.getBranchName())
+                .city(dto.getCity())
+                .address(dto.getAddress())
                 .build();
     }
 
-
-    private LimitsResponse buildLimits() {
-        return LimitsResponse.builder()
-                .dailyTransactionLimit(100000)
-                .perTransactionLimit(50000)
-                .build();
-    }
-
-    private NomineeResponse buildNominee(CustomerSummary customer) {
-        if (customer != null && customer.getNomineeName() != null) {
-            return NomineeResponse.builder()
-                    .name(customer.getNomineeName())
-                    .relation(customer.getNomineeRelation())
-                    .build();
+    private BankBranchDto fetchBankBranch(String ifscCode) {
+        try {
+            return customerClient.getBankBranch(ifscCode);
+        } catch (Exception e) {
+            log.warn("Failed to fetch bank branch for IFSC {}", ifscCode, e);
+            return null;
         }
-        return NomineeResponse.builder()
-                .name("Not Set")
-                .relation("N/A")
-                .build();
-    }
-
-    private KycStatusResponse buildKycStatus(CustomerSummary customer) {
-        if (customer != null) {
-            boolean verified = "APPROVED".equals(customer.getKycStatus());
-            return KycStatusResponse.builder()
-                    .verified(verified)
-                    .status(customer.getKycStatus())
-                    .build();
-        }
-        return KycStatusResponse.builder()
-                .verified(false)
-                .status("PENDING")
-                .build();
-    }
-
-    private List<LinkedAccountResponse> buildLinkedAccounts(List<Account> accounts) {
-        return accounts.stream()
-                .map(acc -> LinkedAccountResponse.builder()
-                        .accountNumber(acc.getAccountNumber())
-                        .accountType(acc.getAccountType().name())
-                        .balance(acc.getBalance().doubleValue())
-                        .primary(acc.isPrimaryAccount())
-                        .build())
-                .toList();
     }
 
     private String maskCardNumber(String cardNumber) {
-        if (cardNumber == null || cardNumber.length() < 4) {
-            return "****";
-        }
         return "****-****-****-" + cardNumber.substring(cardNumber.length() - 4);
     }
 }

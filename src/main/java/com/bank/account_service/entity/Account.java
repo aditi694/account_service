@@ -53,5 +53,8 @@ public class Account {
 
     @Column(name = "ifsc_code")
     private String ifscCode;
+    // 🆕 idempotency guard
+    @Column(name = "last_processed_txn", unique = true)
+    private String lastProcessedTransactionId;
 
 }

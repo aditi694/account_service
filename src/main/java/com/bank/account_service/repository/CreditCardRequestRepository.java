@@ -1,6 +1,6 @@
 package com.bank.account_service.repository;
 
-import com.bank.account_service.dto.card.CreditCardRequest;
+import com.bank.account_service.entity.CreditCardRequest;
 import com.bank.account_service.enums.CardStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 

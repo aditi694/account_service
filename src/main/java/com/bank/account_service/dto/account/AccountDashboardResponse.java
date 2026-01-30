@@ -4,7 +4,6 @@ import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.card.DebitCardResponse;
 import com.bank.account_service.dto.insurance.InsuranceResponse;
 import com.bank.account_service.dto.loan.LoanResponse;
-import com.bank.account_service.dto.response.*;
 import lombok.Builder;
 import lombok.Data;
 
@@ -32,11 +31,13 @@ public class AccountDashboardResponse {
     private List<LoanResponse> loans;
     private List<InsuranceResponse> insurances;
 
-    private LimitsResponse limits;
-    private NomineeResponse nominee;
-    private KycStatusResponse kyc;
+    private Limits limits;
+    private Nominee nominee;
+    private KycStatus kyc;
 
-    private List<LinkedAccountResponse> linkedAccounts;
+    private List<LinkedAccount> linkedAccounts;
+
+    // ================= INNER DTOs =================
 
     @Data
     @Builder
@@ -46,5 +47,35 @@ public class AccountDashboardResponse {
         private String branchName;
         private String city;
         private String address;
+    }
+
+    @Data
+    @Builder
+    public static class Limits {
+        private double dailyTransactionLimit;
+        private double perTransactionLimit;
+    }
+
+    @Data
+    @Builder
+    public static class Nominee {
+        private String name;
+        private String relation;
+    }
+
+    @Data
+    @Builder
+    public static class KycStatus {
+        private boolean verified;
+        private String status;
+    }
+
+    @Data
+    @Builder
+    public static class LinkedAccount {
+        private String accountNumber;
+        private String accountType;
+        private double balance;
+        private boolean primary;
     }
 }
