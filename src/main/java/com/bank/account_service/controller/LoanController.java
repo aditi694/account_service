@@ -6,9 +6,7 @@ import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.security.AuthUser;
 import com.bank.account_service.service.LoanService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,93 +20,53 @@ public class LoanController {
     private final LoanService service;
 
     @PostMapping("/account/loans/request")
-    public ResponseEntity<LoanRequestResponse> requestLoan(
+    public LoanRequestResponse requestLoan(
+            @AuthenticationPrincipal AuthUser user,
             @RequestBody IssueLoanRequest request
     ) {
-        AuthUser user = getUser();
-        return ResponseEntity.ok(
-                service.requestLoan(user.getAccountId(), request)
-        );
+        return service.requestLoan(user.getAccountId(), request);
     }
 
     @GetMapping("/account/loans")
-    public ResponseEntity<List<LoanResponse>> myLoans() {
-        AuthUser user = getUser();
-        return ResponseEntity.ok(
-                service.getLoans(user.getCustomerId())
-        );
+    public List<LoanResponse> myLoans(
+            @AuthenticationPrincipal AuthUser user
+    ) {
+        return service.getLoans(user.getCustomerId());
     }
 
     @GetMapping("/admin/loans/pending")
-    public ResponseEntity<?> getPendingLoans() {
-        ensureAdmin();
+    public Map<String, Object> pendingLoans(
+            @AuthenticationPrincipal AuthUser user
+    ) {
+        ensureAdmin(user);
+        List<Loan> loans = service.getPendingLoans();
 
-        List<Loan> pendingLoans = service.getPendingLoans();
-
-        if (pendingLoans.isEmpty()) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "success", true,
-                            "message", "No pending loan applications",
-                            "description", "All loan requests have already been processed",
-                            "count", 0,
-                            "loans", pendingLoans
-                    )
-            );
-        }
-
-        return ResponseEntity.ok(
-                Map.of(
-                        "success", true,
-                        "message", pendingLoans.size() + " loan application(s) pending approval",
-                        "description", "Review and approve or reject loan applications",
-                        "count", pendingLoans.size(),
-                        "loans", pendingLoans
-                )
+        return Map.of(
+                "success", true,
+                "count", loans.size(),
+                "loans", loans
         );
     }
 
-
     @PostMapping("/admin/loans/{loanId}/approve")
-    public ResponseEntity<LoanApprovalResponse> approve(
+    public LoanApprovalResponse approve(
+            @AuthenticationPrincipal AuthUser user,
             @PathVariable String loanId
     ) {
-        ensureAdmin();
-        return ResponseEntity.ok(
-                service.approveLoan(loanId)
-        );
+        ensureAdmin(user);
+        return service.approveLoan(loanId);
     }
 
     @PostMapping("/admin/loans/{loanId}/reject")
-    public ResponseEntity<LoanApprovalResponse> reject(
+    public LoanApprovalResponse reject(
+            @AuthenticationPrincipal AuthUser user,
             @PathVariable String loanId
     ) {
-        ensureAdmin();
-        return ResponseEntity.ok(
-                service.rejectLoan(loanId)
-        );
+        ensureAdmin(user);
+        return service.rejectLoan(loanId);
     }
 
-    private AuthUser getUser() {
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw BusinessException.unauthorized();
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (!(principal instanceof AuthUser)) {
-            throw BusinessException.unauthorized();
-        }
-
-        return (AuthUser) principal;
-    }
-
-    private void ensureAdmin() {
-        AuthUser user = getUser();
-
+    private void ensureAdmin(AuthUser user) {
         if (!user.isAdmin()) {
             throw BusinessException.forbidden("Admin access required");
         }

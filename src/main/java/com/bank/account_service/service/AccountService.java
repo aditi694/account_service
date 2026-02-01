@@ -9,9 +9,9 @@ public interface AccountService {
 
     LoginResponse login(LoginRequest request);
 
-    BigDecimal getBalance(String accountNumber);
-
-    void debit(String accountNumber, BigDecimal amount);
-
-    void credit(String accountNumber, BigDecimal amount);
+//    BigDecimal getBalance(String accountNumber);
+//
+//    void debit(String accountNumber, BigDecimal amount);
+//
+//    void credit(String accountNumber, BigDecimal amount);
 }

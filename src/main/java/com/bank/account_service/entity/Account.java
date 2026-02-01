@@ -54,4 +54,20 @@ public class Account {
     @Column(name = "ifsc_code")
     private String ifscCode;
 
+    // 🆕 idempotency guard
+    @Column(name = "last_processed_txn", unique = true)
+    private String lastProcessedTransactionId;
+
+    public void debit(BigDecimal amount, String txnId) {
+        if (txnId.equals(lastProcessedTransactionId)) return;
+        this.balance = this.balance.subtract(amount);
+        this.lastProcessedTransactionId = txnId;
+    }
+
+    public void credit(BigDecimal amount, String txnId) {
+        if (txnId.equals(lastProcessedTransactionId)) return;
+        this.balance = this.balance.add(amount);
+        this.lastProcessedTransactionId = txnId;
+    }
+
 }

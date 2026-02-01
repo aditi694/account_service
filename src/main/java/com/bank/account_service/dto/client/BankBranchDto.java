@@ -1,12 +1,12 @@
 package com.bank.account_service.dto.client;
 
-import lombok.Builder;
+import lombok.Data;
 
-@Builder
-public record BankBranchDto(
-        String ifscCode,
-        String bankName,
-        String branchName,
-        String city,
-        String address
-) {}
+@Data
+public class BankBranchDto {
+    private String ifscCode;
+    private String bankName;
+    private String branchName;
+    private String city;
+    private String address;
+}

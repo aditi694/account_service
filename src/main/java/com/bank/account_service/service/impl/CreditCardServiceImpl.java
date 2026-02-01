@@ -1,8 +1,7 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.card.CreditCardApplyRequest;
 import com.bank.account_service.dto.card.CreditCardIssueResponse;
-import com.bank.account_service.dto.card.CreditCardRequest;
+import com.bank.account_service.entity.CreditCardRequest;
 import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.client.TransactionClient;
 import com.bank.account_service.entity.CreditCard;
@@ -30,37 +29,32 @@ public class CreditCardServiceImpl implements CreditCardService {
     private final CreditCardRequestRepository requestRepo;
     private final TransactionClient transactionClient;
 
-    private static final double AUTO_APPROVAL_THRESHOLD = 25000.0;
-    private static final double DEFAULT_CREDIT_LIMIT = 50000.0;
+    private static final double AUTO_APPROVAL_THRESHOLD = 25_000.0;
+    private static final double DEFAULT_CREDIT_LIMIT = 50_000.0;
+
+    // ================= APPLY =================
 
     @Override
     public UUID applyCreditCard(UUID customerId, String cardHolderName) {
 
-        log.info("Credit card application started for customer: {}", customerId);
-        boolean hasActiveCard = creditCardRepo
-                .findByCustomerId(customerId)
+        boolean hasActive = creditCardRepo.findByCustomerId(customerId)
                 .stream()
-                .anyMatch(card -> card.getStatus() == CardStatus.ACTIVE);
+                .anyMatch(c -> c.getStatus() == CardStatus.ACTIVE);
 
-        if (hasActiveCard) {
-            throw BusinessException.conflict("You already have an active credit card");
+        if (hasActive) {
+            throw BusinessException.conflict("Active credit card already exists");
         }
 
-        boolean hasPendingRequest = requestRepo
-                .existsByCustomerIdAndStatus(customerId, CardStatus.PENDING);
-
-        if (hasPendingRequest) {
-            throw BusinessException.conflict("You already have a pending credit card request");
+        if (requestRepo.existsByCustomerIdAndStatus(customerId, CardStatus.PENDING)) {
+            throw BusinessException.conflict("Credit card request already pending");
         }
 
-        double totalDebit = fetchTotalTransactions(customerId);
+        double totalDebit = fetchTotalDebit(customerId);
 
-        log.info("Customer {} transaction history: ₹{}", customerId, totalDebit);
-
+        // AUTO APPROVAL
         if (totalDebit >= AUTO_APPROVAL_THRESHOLD) {
-            log.info("Auto-approving credit card for customer: {}", customerId);
-            issueCard(customerId, cardHolderName);
-            return null; // No request created
+            issueCard(customerId);
+            return null;
         }
 
         CreditCardRequest request = CreditCardRequest.builder()
@@ -70,32 +64,26 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .requestedAt(LocalDateTime.now())
                 .build();
 
-        CreditCardRequest saved = requestRepo.save(request);
-
-        log.info("Credit card request created: {} - requires admin approval", saved.getId());
-
-        return saved.getId();
+        return requestRepo.save(request).getId();
     }
+
+    // ================= ADMIN =================
 
     @Override
     public CreditCardIssueResponse approveRequest(UUID requestId) {
 
-        log.info("Admin approving credit card request: {}", requestId);
-
-        CreditCardRequest request = requestRepo.findById(requestId)
+        CreditCardRequest req = requestRepo.findById(requestId)
                 .orElseThrow(() -> BusinessException.notFound("Credit card request not found"));
 
-        if (request.getStatus() != CardStatus.PENDING) {
-            throw BusinessException.badRequest("Request is not in pending status");
+        if (req.getStatus() != CardStatus.PENDING) {
+            throw BusinessException.badRequest("Request is not pending");
         }
 
-        CreditCard card = issueCard(request.getCustomerId(), request.getCardHolderName());
+        CreditCard card = issueCard(req.getCustomerId());
 
-        request.setStatus(CardStatus.APPROVED);
-        request.setApprovedLimit(card.getCreditLimit());
-        request.setDecidedAt(LocalDateTime.now());
-
-        log.info("Credit card issued successfully for request: {}", requestId);
+        req.setStatus(CardStatus.APPROVED);
+        req.setApprovedLimit(card.getCreditLimit());
+        req.setDecidedAt(LocalDateTime.now());
 
         return CreditCardIssueResponse.builder()
                 .cardNumber(maskCardNumber(card.getCardNumber()))
@@ -108,66 +96,71 @@ public class CreditCardServiceImpl implements CreditCardService {
     @Override
     public void rejectRequest(UUID requestId, String reason) {
 
-        log.info("Admin rejecting credit card request: {}", requestId);
-
-        CreditCardRequest request = requestRepo.findById(requestId)
+        CreditCardRequest req = requestRepo.findById(requestId)
                 .orElseThrow(() -> BusinessException.notFound("Credit card request not found"));
 
-        if (request.getStatus() != CardStatus.PENDING) {
-            throw BusinessException.badRequest("Request is not in pending status");
+        if (req.getStatus() != CardStatus.PENDING) {
+            throw BusinessException.badRequest("Request is not pending");
         }
 
-        request.setStatus(CardStatus.REJECTED);
-        request.setRejectionReason(reason);
-        request.setDecidedAt(LocalDateTime.now());
-
-        log.info("Credit card request rejected: {}", requestId);
+        req.setStatus(CardStatus.REJECTED);
+        req.setRejectionReason(reason);
+        req.setDecidedAt(LocalDateTime.now());
     }
 
-    @Override
-    public List<CreditCardResponse> getCards(UUID customerId) {
-        return creditCardRepo.findByCustomerId(customerId)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
+    // ================= DASHBOARD (SINGLE SOURCE) =================
 
     @Override
-    public CreditCardResponse getCardStatus(UUID customerId) {
+    public CreditCardResponse getCreditCardSummary(UUID customerId) {
 
-        // Check active card
+        // ACTIVE CARD HAS PRIORITY
         return creditCardRepo.findByCustomerId(customerId)
                 .stream()
                 .filter(card -> card.getStatus() == CardStatus.ACTIVE)
                 .findFirst()
-                .map(this::mapToResponse)
-                .orElseGet(() -> {
-                    return requestRepo.findTopByCustomerIdOrderByRequestedAtDesc(customerId)
-                            .map(req -> CreditCardResponse.builder()
-                                    .cardNumber("Not Issued")
-                                    .creditLimit(0)
-                                    .availableCredit(0)
-                                    .outstanding(0)
-                                    .status(buildRequestStatus(req))
-                                    .build()
-                            )
-                            .orElse(CreditCardResponse.builder()
-                                    .cardNumber("Not Issued")
-                                    .creditLimit(0)
-                                    .availableCredit(0)
-                                    .outstanding(0)
-                                    .status("NOT_APPLIED")
-                                    .build()
-                            );
-                });
+                .map(card -> CreditCardResponse.builder()
+                        .cardNumber(maskCardNumber(card.getCardNumber()))
+                        .creditLimit(card.getCreditLimit())
+                        .availableCredit(card.getAvailableCredit())
+                        .outstanding(card.getOutstandingAmount())
+                        .status("ACTIVE")
+                        .message("Your credit card is active")
+                        .build()
+                )
+                .orElseGet(() ->
+                        requestRepo.findTopByCustomerIdOrderByRequestedAtDesc(customerId)
+                                .map(req -> switch (req.getStatus()) {
+                                    case PENDING -> CreditCardResponse.builder()
+                                            .status("PENDING_APPROVAL")
+                                            .message("Credit card application under review")
+                                            .build();
+                                    case REJECTED -> CreditCardResponse.builder()
+                                            .status("REJECTED")
+                                            .message("Rejected: " +
+                                                    (req.getRejectionReason() != null
+                                                            ? req.getRejectionReason()
+                                                            : "Not specified"))
+                                            .build();
+                                    default -> notApplied();
+                                })
+                                .orElse(notApplied())
+                );
     }
 
+    private CreditCardResponse notApplied() {
+        return CreditCardResponse.builder()
+                .status("NOT_APPLIED")
+                .message("Apply for a credit card to enjoy benefits")
+                .build();
+    }
     @Override
     public List<CreditCardRequest> getPendingRequests() {
         return requestRepo.findByStatus(CardStatus.PENDING);
     }
 
-    private CreditCard issueCard(UUID customerId, String cardHolderName) {
+    // ================= INTERNAL =================
+
+    private CreditCard issueCard(UUID customerId) {
 
         CreditCard card = CreditCard.builder()
                 .customerId(customerId)
@@ -181,11 +174,11 @@ public class CreditCardServiceImpl implements CreditCardService {
         return creditCardRepo.save(card);
     }
 
-    private double fetchTotalTransactions(UUID customerId) {
+    private double fetchTotalDebit(UUID customerId) {
         try {
             return transactionClient.getTotalDebit(customerId);
         } catch (Exception e) {
-            log.warn("Failed to fetch transactions for customer: {}", customerId);
+            log.warn("Failed to fetch transaction summary for customer={}", customerId);
             return 0.0;
         }
     }
@@ -195,27 +188,6 @@ public class CreditCardServiceImpl implements CreditCardService {
     }
 
     private String maskCardNumber(String cardNumber) {
-        if (cardNumber == null || cardNumber.length() < 4) {
-            return "****";
-        }
         return "****-****-****-" + cardNumber.substring(cardNumber.length() - 4);
-    }
-
-    private CreditCardResponse mapToResponse(CreditCard card) {
-        return CreditCardResponse.builder()
-                .cardNumber(maskCardNumber(card.getCardNumber()))
-                .creditLimit(card.getCreditLimit())
-                .availableCredit(card.getAvailableCredit())
-                .outstanding(card.getOutstandingAmount())
-                .status(card.getStatus().name())
-                .build();
-    }
-
-    private String buildRequestStatus(CreditCardRequest req) {
-        return switch (req.getStatus()) {
-            case PENDING -> "PENDING_APPROVAL";
-            case REJECTED -> "REJECTED: " + req.getRejectionReason();
-            default -> req.getStatus().name();
-        };
     }
 }

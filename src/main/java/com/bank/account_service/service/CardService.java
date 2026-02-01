@@ -8,7 +8,7 @@ public interface CardService {
 
     DebitCardResponse getDebitCard(UUID accountId);
 
-    void issueDebitCard(UUID accountId);
+//    void issueDebitCard(UUID accountId);
 
     void blockDebitCard(UUID accountId);
 

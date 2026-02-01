@@ -1,9 +1,8 @@
 package com.bank.account_service.service;
 
-import com.bank.account_service.dto.card.CreditCardApplyRequest;
 import com.bank.account_service.dto.card.CreditCardIssueResponse;
-import com.bank.account_service.dto.card.CreditCardRequest;
 import com.bank.account_service.dto.card.CreditCardResponse;
+import com.bank.account_service.entity.CreditCardRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,9 +15,7 @@ public interface CreditCardService {
 
     void rejectRequest(UUID requestId, String reason);
 
-    List<CreditCardResponse> getCards(UUID customerId);
-
-    CreditCardResponse getCardStatus(UUID customerId);
+    CreditCardResponse getCreditCardSummary(UUID customerId);
 
     List<CreditCardRequest> getPendingRequests();
 }

@@ -1,11 +1,13 @@
 package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.account.AccountSyncRequest;
+import com.bank.account_service.dto.account.BalanceUpdateRequest;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.DebitCard;
 import com.bank.account_service.enums.AccountStatus;
 import com.bank.account_service.enums.AccountType;
 import com.bank.account_service.enums.CardStatus;
+import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;
 import com.bank.account_service.repository.DebitCardRepository;
 import com.bank.account_service.service.InternalAccountService;
@@ -48,7 +50,7 @@ public class InternalAccountServiceImpl implements InternalAccountService {
                 .primaryAccount(request.isPrimaryAccount())
                 .status(AccountStatus.valueOf(request.getStatus().toUpperCase()))
                 .passwordHash(request.getPasswordHash())
-                .requiresPasswordChange(false) // Customer set their own password
+                .requiresPasswordChange(false)
                 .openingDate(LocalDateTime.now())
                 .ifscCode(request.getIfscCode())
                 .build();
@@ -79,6 +81,34 @@ public class InternalAccountServiceImpl implements InternalAccountService {
         } catch (Exception e) {
             log.error("Failed to issue debit card", e);
         }
+    }
+
+    @Override
+    public void updateBalance(BalanceUpdateRequest req) {
+
+        Account account = accountRepo.findByAccountNumber(req.getAccountNumber())
+                .orElseThrow(BusinessException::accountNotFound);
+
+        // ✅ Idempotency per account (NOT global)
+        if (req.getTransactionId().equals(account.getLastProcessedTransactionId())) {
+            log.info("Duplicate transaction ignored: {}", req.getTransactionId());
+            return;
+        }
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw BusinessException.accountInactive();
+        }
+
+        BigDecimal newBalance = account.getBalance().add(req.getDelta());
+
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw BusinessException.insufficientBalance();
+        }
+
+        account.setBalance(newBalance);
+        account.setLastProcessedTransactionId(req.getTransactionId());
+
+        accountRepo.save(account);
     }
 
     private String generateCardNumber() {
