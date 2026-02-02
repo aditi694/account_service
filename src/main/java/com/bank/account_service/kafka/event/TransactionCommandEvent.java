@@ -6,7 +6,7 @@ public record TransactionCommandEvent(
         int eventVersion,
         String eventId,
         String transactionId,
-        String step,        // DEBIT | CREDIT | COMPENSATE
-        String account,
+        String step,            // DEBIT | CREDIT | COMPENSATE_DEBIT
+        String accountNumber,
         BigDecimal amount
 ) {}
