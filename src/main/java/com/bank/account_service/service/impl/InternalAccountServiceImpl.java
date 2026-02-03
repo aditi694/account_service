@@ -82,6 +82,34 @@ public class InternalAccountServiceImpl implements InternalAccountService {
             log.error("Failed to issue debit card", e);
         }
     }
+    @Override
+    public void debit(String accNo, BigDecimal amt, String txnId) {
+        Account acc = accountRepo.findByAccountNumber(accNo)
+                .orElseThrow(BusinessException::accountNotFound);
+
+        if (acc.getBalance().compareTo(amt) < 0)
+            throw BusinessException.insufficientBalance();
+
+        acc.setBalance(acc.getBalance().subtract(amt));
+        acc.setLastProcessedTransactionId(txnId);
+        accountRepo.save(acc);
+    }
+
+    @Override
+    public void credit(String accNo, BigDecimal amt, String txnId) {
+        Account acc = accountRepo.findByAccountNumber(accNo)
+                .orElseThrow(BusinessException::accountNotFound);
+
+        acc.setBalance(acc.getBalance().add(amt));
+        acc.setLastProcessedTransactionId(txnId);
+        accountRepo.save(acc);
+    }
+
+    @Override
+    public void transfer(String from, String to, BigDecimal amt, BigDecimal charges, String txnId) {
+        debit(from, amt.add(charges), txnId);
+        credit(to, amt, txnId);
+    }
 
     @Override
     public void updateBalance(BalanceUpdateRequest req) {
