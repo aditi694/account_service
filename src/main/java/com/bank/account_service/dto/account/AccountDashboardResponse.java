@@ -21,7 +21,7 @@ public class AccountDashboardResponse {
 
     private String accountNumber;
     private String accountType;
-    private String accountTypeDescription;  // ✅ Add this
+    private String accountTypeDescription;
 
     private BigDecimal balance;
     private BankBranchDetails bankBranch;
@@ -39,8 +39,6 @@ public class AccountDashboardResponse {
     private KycStatus kyc;
 
     private List<LinkedAccount> linkedAccounts;
-
-    // ================= INNER DTOs =================
 
     @Data
     @Builder

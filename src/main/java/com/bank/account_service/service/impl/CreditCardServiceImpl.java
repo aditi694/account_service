@@ -158,8 +158,6 @@ public class CreditCardServiceImpl implements CreditCardService {
         return requestRepo.findByStatus(CardStatus.PENDING);
     }
 
-    // ================= INTERNAL =================
-
     private CreditCard issueCard(UUID customerId) {
 
         CreditCard card = CreditCard.builder()

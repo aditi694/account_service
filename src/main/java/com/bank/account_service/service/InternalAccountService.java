@@ -9,11 +9,18 @@ public interface InternalAccountService {
 
     void createAccount(AccountSyncRequest request);
 
-    void debit(String accNo, BigDecimal amt, String txnId);
 
-    void credit(String accNo, BigDecimal amt, String txnId);
+    // ================= CREDIT =================
+    void credit(String accountNumber, BigDecimal amount);
 
-    void transfer(String from, String to, BigDecimal amt, BigDecimal charges, String txnId);
+    // ================= DEBIT =================
+    void debit(String accountNumber, BigDecimal amount);
+
+    // ================= TRANSFER =================
+    void transfer(String fromAccount,
+                  String toAccount,
+                  BigDecimal amount,
+                  BigDecimal charges);
 
     // 🆕 For Transaction Service
     void updateBalance(BalanceUpdateRequest request);

@@ -56,49 +56,4 @@ public final class AccountValidator {
         log.info("Account status validation passed");
     }
 
-
-    public static void validateBalanceAccess(Account account) {
-
-        log.info("Balance check validation for accountId={}",
-                account.getId());
-
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            log.warn(
-                    "Balance access denied for status={}",
-                    account.getStatus()
-            );
-            throw BusinessException.forbidden(
-                    "Account is not active"
-            );
-        }
-    }
-
-
-    public static void validatePasswordChange(
-            String oldPassword,
-            String newPassword
-    ) {
-
-        log.info("Password change validation started");
-
-        if (oldPassword == null || oldPassword.isBlank()) {
-            throw BusinessException.badRequest(
-                    "Old password is required"
-            );
-        }
-
-        if (newPassword == null || newPassword.isBlank()) {
-            throw BusinessException.badRequest(
-                    "New password is required"
-            );
-        }
-
-        if (newPassword.length() < 8) {
-            throw BusinessException.badRequest(
-                    "Password must be at least 8 characters long"
-            );
-        }
-
-        log.info("Password change validation passed");
-    }
 }

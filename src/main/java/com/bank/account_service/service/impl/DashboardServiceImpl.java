@@ -75,7 +75,6 @@ public class DashboardServiceImpl implements DashboardService {
                 .build();
     }
 
-    // ================= DEBIT CARD =================
 
     private DebitCardResponse getDebitCardStatus(String accountNumber) {
         return debitRepo.findByAccountNumber(accountNumber)
@@ -98,7 +97,6 @@ public class DashboardServiceImpl implements DashboardService {
                         .build());
     }
 
-    // ================= LOANS =================
 
     private List<LoanResponse> getCustomerLoans(UUID customerId) {
         return loanRepo.findByAccount_CustomerId(customerId)
@@ -115,7 +113,7 @@ public class DashboardServiceImpl implements DashboardService {
                     .loanId(loan.getLoanId())
                     .loanType(loan.getLoanType().name())
                     .status(status)
-                    .statusMessage(getLoanStatusMessage(status))  // ✅
+                    .statusMessage(getLoanStatusMessage(status))
                     .build();
         }
 
@@ -128,11 +126,10 @@ public class DashboardServiceImpl implements DashboardService {
                 .emiAmount(loan.getEmiAmount())
                 .outstandingAmount(loan.getOutstandingAmount())
                 .status(status)
-                .statusMessage(getLoanStatusMessage(status))  // ✅
+                .statusMessage(getLoanStatusMessage(status))
                 .build();
     }
 
-    // ✅ AppConstants Integration
     private String getLoanStatusMessage(LoanStatus status) {
         return switch (status) {
             case ACTIVE -> LOAN_ACTIVE_MSG;
@@ -143,7 +140,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ================= INSURANCE =================
 
     private List<InsuranceResponse> getCustomerInsurances(UUID customerId) {
         return insuranceRepo.findByAccount_CustomerId(customerId)
@@ -165,7 +161,6 @@ public class DashboardServiceImpl implements DashboardService {
                 .build();
     }
 
-    // ✅ AppConstants Integration
     private String getInsuranceStatusMessage(InsuranceStatus status) {
         return switch (status) {
             case ACTIVE -> INSURANCE_ACTIVE_MSG;
@@ -176,7 +171,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ✅ AppConstants Integration for Account Status
     private String getAccountStatusMessage(com.bank.account_service.enums.AccountStatus status) {
         return switch (status) {
             case ACTIVE -> ACCOUNT_ACTIVE_MSG;
@@ -186,7 +180,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ✅ AppConstants Integration for Account Type
     private String getAccountTypeDescription(com.bank.account_service.enums.AccountType type) {
         return switch (type) {
             case SAVINGS -> ACC_TYPE_SAVINGS_DESC;
@@ -196,7 +189,6 @@ public class DashboardServiceImpl implements DashboardService {
         };
     }
 
-    // ✅ AppConstants Integration for Card Status
     private String getCardStatusMessage(com.bank.account_service.enums.CardStatus status) {
         return switch (status) {
             case ACTIVE -> CARD_ACTIVE_MSG;
@@ -205,8 +197,6 @@ public class DashboardServiceImpl implements DashboardService {
             default -> CARD_NOT_ISSUED_MSG;
         };
     }
-
-    // ================= COMMON =================
 
     private CustomerSnapshot fetchCustomerSummary(UUID customerId) {
         try {

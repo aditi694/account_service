@@ -27,26 +27,27 @@ public class CreditCardController {
         UUID requestId =
                 service.applyCreditCard(user.getCustomerId(), request.getCardHolderName());
 
+        Map<String, Object> response = new HashMap<>();
+        response.put(AppConstants.SUCCESS, true);
+
         if (requestId == null) {
-            return ResponseEntity.ok(Map.of(
-                    AppConstants.SUCCESS, true,
-                    AppConstants.STATUS, AppConstants.STATUS_APPROVED,
-                    AppConstants.TITLE, AppConstants.TITLE_APPROVED,
-                    AppConstants.MESSAGE, AppConstants.MSG_APPROVED,
-                    AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED,
-                    AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED
-            ));
+            response.put(AppConstants.STATUS, AppConstants.STATUS_APPROVED);
+            response.put(AppConstants.TITLE, AppConstants.TITLE_APPROVED);
+            response.put(AppConstants.MESSAGE, AppConstants.MSG_APPROVED);
+            response.put(AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED);
+            response.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED);
+
+            return ResponseEntity.ok(response);
         }
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
-                AppConstants.SUCCESS, true,
-                AppConstants.STATUS, AppConstants.STATUS_PENDING,
-                AppConstants.REQUEST_ID, requestId.toString(),
-                AppConstants.TITLE, AppConstants.TITLE_PENDING,
-                AppConstants.MESSAGE, AppConstants.MSG_PENDING,
-                AppConstants.DESCRIPTION, AppConstants.DESC_PENDING,
-                AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING
-        ));
+        response.put(AppConstants.STATUS, AppConstants.STATUS_PENDING);
+        response.put(AppConstants.REQUEST_ID, requestId.toString());
+        response.put(AppConstants.TITLE, AppConstants.TITLE_PENDING);
+        response.put(AppConstants.MESSAGE, AppConstants.MSG_PENDING);
+        response.put(AppConstants.DESCRIPTION, AppConstants.DESC_PENDING);
+        response.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @GetMapping("/account/credit-cards/status")
@@ -56,7 +57,6 @@ public class CreditCardController {
         return service.getCreditCardSummary(user.getCustomerId());
     }
 
-    // -------- ADMIN --------
 
     @GetMapping("/admin/credit-cards/pending")
     public ResponseEntity<Map<String, Object>> pending(
@@ -66,11 +66,12 @@ public class CreditCardController {
 
         List<CreditCardRequest> pending = service.getPendingRequests();
 
-        return ResponseEntity.ok(Map.of(
-                AppConstants.SUCCESS, true,
-                AppConstants.COUNT, pending.size(),
-                AppConstants.REQUESTS, pending
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put(AppConstants.SUCCESS, true);
+        response.put(AppConstants.COUNT, pending.size());
+        response.put(AppConstants.REQUESTS, pending);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/admin/credit-cards/approve/{requestId}")

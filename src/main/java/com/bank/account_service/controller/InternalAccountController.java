@@ -47,7 +47,25 @@ public class InternalAccountController {
                 .findByAccountNumber(accountNumber)
                 .isPresent();
     }
+    @PostMapping("/{accountNumber}/credit")
+    public void credit(@PathVariable String accountNumber,
+                       @RequestParam BigDecimal amount) {
+        service.credit(accountNumber, amount);
+    }
 
+    @PostMapping("/{accountNumber}/debit")
+    public void debit(@PathVariable String accountNumber,
+                      @RequestParam BigDecimal amount) {
+        service.debit(accountNumber, amount);
+    }
+
+    @PostMapping("/transfer")
+    public void transfer(@RequestParam String fromAccount,
+                         @RequestParam String toAccount,
+                         @RequestParam BigDecimal amount,
+                         @RequestParam BigDecimal charges) {
+        service.transfer(fromAccount, toAccount, amount, charges);
+    }
 
     @GetMapping("/{accountNumber}/owner")
     public UUID getAccountOwner(@PathVariable String accountNumber) {

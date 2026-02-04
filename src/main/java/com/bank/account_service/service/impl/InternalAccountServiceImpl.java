@@ -56,11 +56,11 @@ public class InternalAccountServiceImpl implements InternalAccountService {
                 .build();
 
         Account savedAccount = accountRepo.save(account);
-        log.info("✅ Account created successfully: {}", savedAccount.getId());
+        log.info("Account created successfully: {}", savedAccount.getId());
 
         issueDebitCardAutomatically(savedAccount);
 
-        log.info("✅ Account setup completed with debit card");
+        log.info("Account setup completed with debit card");
     }
 
     private void issueDebitCardAutomatically(Account account) {
@@ -76,41 +76,68 @@ public class InternalAccountServiceImpl implements InternalAccountService {
                     .build();
 
             debitCardRepo.save(debitCard);
-            log.info("✅ Debit card issued automatically: {}", debitCard.getCardNumber());
+            log.info("Debit card issued automatically: {}", debitCard.getCardNumber());
 
         } catch (Exception e) {
             log.error("Failed to issue debit card", e);
         }
     }
     @Override
-    public void debit(String accNo, BigDecimal amt, String txnId) {
-        Account acc = accountRepo.findByAccountNumber(accNo)
+    public void credit(String accountNumber, BigDecimal amount) {
+
+        Account account = accountRepo.findByAccountNumber(accountNumber)
                 .orElseThrow(BusinessException::accountNotFound);
 
-        if (acc.getBalance().compareTo(amt) < 0)
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw BusinessException.accountInactive();
+        }
+
+        account.setBalance(account.getBalance().add(amount));
+        accountRepo.save(account);
+    }
+
+    @Override
+    public void debit(String accountNumber, BigDecimal amount) {
+
+        Account account = accountRepo.findByAccountNumber(accountNumber)
+                .orElseThrow(BusinessException::accountNotFound);
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw BusinessException.accountInactive();
+        }
+
+        if (account.getBalance().compareTo(amount) < 0) {
             throw BusinessException.insufficientBalance();
+        }
 
-        acc.setBalance(acc.getBalance().subtract(amt));
-        acc.setLastProcessedTransactionId(txnId);
-        accountRepo.save(acc);
+        account.setBalance(account.getBalance().subtract(amount));
+        accountRepo.save(account);
     }
 
     @Override
-    public void credit(String accNo, BigDecimal amt, String txnId) {
-        Account acc = accountRepo.findByAccountNumber(accNo)
+    public void transfer(String fromAccount,
+                         String toAccount,
+                         BigDecimal amount,
+                         BigDecimal charges) {
+
+        Account sender = accountRepo.findByAccountNumber(fromAccount)
                 .orElseThrow(BusinessException::accountNotFound);
 
-        acc.setBalance(acc.getBalance().add(amt));
-        acc.setLastProcessedTransactionId(txnId);
-        accountRepo.save(acc);
-    }
+        Account receiver = accountRepo.findByAccountNumber(toAccount)
+                .orElseThrow(BusinessException::accountNotFound);
 
-    @Override
-    public void transfer(String from, String to, BigDecimal amt, BigDecimal charges, String txnId) {
-        debit(from, amt.add(charges), txnId);
-        credit(to, amt, txnId);
-    }
+        BigDecimal totalDebit = amount.add(charges);
 
+        if (sender.getBalance().compareTo(totalDebit) < 0) {
+            throw BusinessException.insufficientBalance();
+        }
+
+        sender.setBalance(sender.getBalance().subtract(totalDebit));
+        receiver.setBalance(receiver.getBalance().add(amount));
+
+        accountRepo.save(sender);
+        accountRepo.save(receiver);
+    }
     @Override
     public void updateBalance(BalanceUpdateRequest req) {
 

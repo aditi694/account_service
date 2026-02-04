@@ -59,52 +59,5 @@ public class AccountServiceImpl implements AccountService {
                 .requiresPasswordChange(account.isRequiresPasswordChange())
                 .build();
     }
-//    @Override
-//    public BigDecimal getBalance(String accountNumber) {
-//
-//        Account account = accountRepo.findByAccountNumber(accountNumber)
-//                .orElseThrow(BusinessException::accountNotFound);
-//`
-//        if (account.getStatus() != AccountStatus.ACTIVE) {
-//            throw BusinessException.accountInactive();
-//        }
-//
-//        return account.getBalance();
-//    }
-//
-//    @Override
-//    public void debit(String accountNumber, BigDecimal amount) {
-//
-//        Account account = accountRepo.findByAccountNumber(accountNumber)
-//                .orElseThrow(BusinessException::accountNotFound);
-//
-//        if (account.getStatus() != AccountStatus.ACTIVE) {
-//            throw BusinessException.accountInactive();
-//        }
-//
-//        BigDecimal currentBalance = account.getBalance();
-//
-//        if (currentBalance.compareTo(amount) < 0) {
-//            throw BusinessException.insufficientBalance();
-//        }
-//
-//        account.setBalance(currentBalance.subtract(amount));
-//
-//        accountRepo.save(account);
-//    }
-//
-//    @Override
-//    public void credit(String accountNumber, BigDecimal amount) {
-//
-//        Account account = accountRepo.findByAccountNumber(accountNumber)
-//                .orElseThrow(BusinessException::accountNotFound);
-//
-//        if (account.getStatus() != AccountStatus.ACTIVE) {
-//            throw BusinessException.accountInactive();
-//        }
-//
-//        account.setBalance(account.getBalance().add(amount));
-//
-//        accountRepo.save(account);
-//    }
+
 }

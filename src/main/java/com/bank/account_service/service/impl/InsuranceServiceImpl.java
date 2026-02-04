@@ -36,7 +36,6 @@ public class InsuranceServiceImpl implements InsuranceService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(BusinessException::accountNotFound);
 
-        // ✅ ALL INSURANCE AUTO-APPROVED
         Insurance insurance = Insurance.builder()
                 .insuranceId("INS-" + System.currentTimeMillis())
                 .account(account)

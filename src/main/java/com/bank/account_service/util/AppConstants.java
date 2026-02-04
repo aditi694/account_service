@@ -2,9 +2,6 @@ package com.bank.account_service.util;
 
 public final class AppConstants {
 
-    public static String COUNT;
-    public static String REQUEST_ID;
-    public static String REQUESTS;
 
     private AppConstants() {}
 
@@ -103,36 +100,10 @@ public final class AppConstants {
 
     public static final String NEXT_PENDING =
             "You will receive SMS and Email updates";
+    public static final String COUNT = "count";
+    public static final String REQUEST_ID = "requestId";
+    public static final String REQUESTS = "requests";
 
-    public static final String TITLE_REJECTED = "Application Rejected";
-    public static final String MSG_REJECTED =
-            "Your credit card application has been rejected";
-
-    public static final String DESC_REJECTED =
-            "Unfortunately, we cannot approve your application at this time";
-
-    // ============ BALANCE & LIMIT MESSAGES ============
-    public static final String BALANCE_FETCHED_MSG =
-            "Balance fetched successfully";
-
-    public static final String INSUFFICIENT_BALANCE_MSG =
-            "Insufficient balance in your account";
-
-    public static final String DAILY_LIMIT_EXCEEDED_MSG =
-            "Daily transaction limit exceeded";
-
-    public static final String PER_TXN_LIMIT_EXCEEDED_MSG =
-            "Per transaction limit exceeded";
-
-    // ============ PASSWORD MESSAGES ============
-    public static final String PASSWORD_CHANGED_MSG =
-            "Password changed successfully";
-
-    public static final String OLD_PASSWORD_INCORRECT_MSG =
-            "The old password you entered is incorrect";
-
-    public static final String PASSWORD_SAME_MSG =
-            "New password cannot be same as old password";
 
     // ============ COMMON KEYS ============
     public static final String SUCCESS = "success";
@@ -142,6 +113,5 @@ public final class AppConstants {
     public static final String DESCRIPTION = "description";
     public static final String NEXT_STEPS = "nextSteps";
     public static final String DATA = "data";
-    public static final String ACCOUNT_ID = "accountId";
-    public static final String CUSTOMER_ID = "customerId";
+
 }

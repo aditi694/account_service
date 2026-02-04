@@ -31,7 +31,6 @@ public class PasswordServiceImpl implements PasswordService {
             throw BusinessException.badRequest("Old password is incorrect");
         }
 
-        // Update password
         account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         account.setRequiresPasswordChange(false);
 
