@@ -3,7 +3,8 @@ package com.bank.account_service.util;
 public final class AppConstants {
 
 
-    private AppConstants() {}
+    private AppConstants() {
+    }
 
     // ============ ACCOUNT STATUS MESSAGES ============
     public static final String ACCOUNT_ACTIVE_MSG =
@@ -112,6 +113,14 @@ public final class AppConstants {
     public static final String MESSAGE = "message";
     public static final String DESCRIPTION = "description";
     public static final String NEXT_STEPS = "nextSteps";
-    public static final String DATA = "data";
 
+    public static final String SUCCESS_CODE = "00";
+    public static final String SUCCESS_MSG = "Operation successful";
+
+    public static final String FORBIDDEN_MSG = "Access forbidden";
+
+    public static final String CONFLICT_MSG = "Conflict occurred";
+
+    public static final String CREDIT_CARD_APPROVED = "Credit card approved successfully";
+    public static final String LOAN_APPROVED = "Loan approved successfully";
 }

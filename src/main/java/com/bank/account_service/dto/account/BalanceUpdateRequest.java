@@ -1,17 +1,24 @@
 package com.bank.account_service.dto.account;
 
+import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class BalanceUpdateRequest {
+public class BalanceUpdateRequest implements Serializable {
 
+    @NotBlank
     private String accountNumber;
-    private BigDecimal delta;          // +credit, -debit
-    private String transactionId;      // saga/txn id
+
+    @NotNull
+    private BigDecimal delta;
+
+    @NotBlank
+    private String transactionId;
 }

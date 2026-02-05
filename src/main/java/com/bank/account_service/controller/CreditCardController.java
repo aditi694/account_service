@@ -1,10 +1,13 @@
 package com.bank.account_service.controller;
 
+import com.bank.account_service.dto.auth.BaseResponse;
 import com.bank.account_service.dto.card.*;
 import com.bank.account_service.entity.CreditCardRequest;
+import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.security.AuthUser;
 import com.bank.account_service.service.CreditCardService;
 import com.bank.account_service.util.AppConstants;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,76 +23,81 @@ public class CreditCardController {
     private final CreditCardService service;
 
     @PostMapping("/account/credit-cards/apply")
-    public ResponseEntity<Map<String, Object>> apply(
+    public ResponseEntity<BaseResponse<Map<String, Object>>> apply(
             @AuthenticationPrincipal AuthUser user,
-            @RequestBody CreditCardApplyRequest request
+            @Valid @RequestBody CreditCardApplyRequest request
     ) {
         UUID requestId =
-                service.applyCreditCard(user.getCustomerId(), request.getCardHolderName());
+                service.applyCreditCard(user, request.getCardHolderName());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put(AppConstants.SUCCESS, true);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(AppConstants.SUCCESS, true);
 
         if (requestId == null) {
-            response.put(AppConstants.STATUS, AppConstants.STATUS_APPROVED);
-            response.put(AppConstants.TITLE, AppConstants.TITLE_APPROVED);
-            response.put(AppConstants.MESSAGE, AppConstants.MSG_APPROVED);
-            response.put(AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED);
-            response.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED);
+            data.put(AppConstants.STATUS, AppConstants.STATUS_APPROVED);
+            data.put(AppConstants.TITLE, AppConstants.TITLE_APPROVED);
+            data.put(AppConstants.MESSAGE, AppConstants.MSG_APPROVED);
+            data.put(AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED);
+            data.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    new BaseResponse<>(data, AppConstants.SUCCESS_MSG, AppConstants.SUCCESS_CODE)
+            );
         }
 
-        response.put(AppConstants.STATUS, AppConstants.STATUS_PENDING);
-        response.put(AppConstants.REQUEST_ID, requestId.toString());
-        response.put(AppConstants.TITLE, AppConstants.TITLE_PENDING);
-        response.put(AppConstants.MESSAGE, AppConstants.MSG_PENDING);
-        response.put(AppConstants.DESCRIPTION, AppConstants.DESC_PENDING);
-        response.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING);
+        data.put(AppConstants.STATUS, AppConstants.STATUS_PENDING);
+        data.put(AppConstants.REQUEST_ID, requestId.toString());
+        data.put(AppConstants.TITLE, AppConstants.TITLE_PENDING);
+        data.put(AppConstants.MESSAGE, AppConstants.MSG_PENDING);
+        data.put(AppConstants.DESCRIPTION, AppConstants.DESC_PENDING);
+        data.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(new BaseResponse<>(data, AppConstants.SUCCESS_MSG, AppConstants.SUCCESS_CODE));
     }
 
     @GetMapping("/account/credit-cards/status")
-    public CreditCardResponse getStatus(
+    public BaseResponse<CreditCardResponse> getStatus(
             @AuthenticationPrincipal AuthUser user
     ) {
-        return service.getCreditCardSummary(user.getCustomerId());
+        CreditCardResponse data =
+                service.getCreditCardSummary(user.getCustomerId());
+
+        return new BaseResponse<>(data, AppConstants.SUCCESS_MSG, AppConstants.SUCCESS_CODE);
     }
 
-
     @GetMapping("/admin/credit-cards/pending")
-    public ResponseEntity<Map<String, Object>> pending(
+    public BaseResponse<Map<String, Object>> pending(
             @AuthenticationPrincipal AuthUser user
     ) {
         ensureAdmin(user);
 
         List<CreditCardRequest> pending = service.getPendingRequests();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put(AppConstants.SUCCESS, true);
-        response.put(AppConstants.COUNT, pending.size());
-        response.put(AppConstants.REQUESTS, pending);
+        Map<String, Object> data = new HashMap<>();
+        data.put(AppConstants.SUCCESS, true);
+        data.put(AppConstants.COUNT, pending.size());
+        data.put(AppConstants.REQUESTS, pending);
 
-        return ResponseEntity.ok(response);
+        return new BaseResponse<>(data, AppConstants.SUCCESS_MSG, AppConstants.SUCCESS_CODE);
     }
 
     @PostMapping("/admin/credit-cards/approve/{requestId}")
-    public Map<String, Object> approve(
+    public BaseResponse<CreditCardIssueResponse> approve(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable UUID requestId
     ) {
         ensureAdmin(user);
-        CreditCardIssueResponse response = service.approveRequest(requestId);
 
-        return Map.of(
-                AppConstants.SUCCESS, true,
-                AppConstants.DATA, response
-        );
+        CreditCardIssueResponse data =
+                service.approveRequest(requestId);
+
+        return new BaseResponse<>(data, AppConstants.CREDIT_CARD_APPROVED, AppConstants.SUCCESS_CODE);
     }
 
     @PostMapping("/admin/credit-cards/reject/{requestId}")
-    public Map<String, Object> reject(
+    public BaseResponse<Void> reject(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable UUID requestId,
             @RequestParam String reason
@@ -97,12 +105,12 @@ public class CreditCardController {
         ensureAdmin(user);
         service.rejectRequest(requestId, reason);
 
-        return Map.of(AppConstants.SUCCESS, true);
+        return new BaseResponse<>(null, AppConstants.CONFLICT_MSG, AppConstants.SUCCESS_CODE);
     }
 
     private void ensureAdmin(AuthUser user) {
         if (!user.isAdmin()) {
-            throw new RuntimeException("Admin access required");
+            throw BusinessException.forbidden(AppConstants.FORBIDDEN_MSG);
         }
     }
 }

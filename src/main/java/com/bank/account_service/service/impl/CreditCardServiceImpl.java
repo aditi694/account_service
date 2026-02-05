@@ -1,14 +1,17 @@
 package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.card.CreditCardIssueResponse;
+import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.CreditCardRequest;
 import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.client.TransactionClient;
 import com.bank.account_service.entity.CreditCard;
 import com.bank.account_service.enums.CardStatus;
 import com.bank.account_service.exception.BusinessException;
+import com.bank.account_service.repository.AccountRepository;
 import com.bank.account_service.repository.CreditCardRepository;
 import com.bank.account_service.repository.CreditCardRequestRepository;
+import com.bank.account_service.security.AuthUser;
 import com.bank.account_service.service.CreditCardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,14 +31,30 @@ public class CreditCardServiceImpl implements CreditCardService {
     private final CreditCardRepository creditCardRepo;
     private final CreditCardRequestRepository requestRepo;
     private final TransactionClient transactionClient;
+    private final AccountRepository accountRepository;
+
 
     private static final double AUTO_APPROVAL_THRESHOLD = 25_000.0;
     private static final double DEFAULT_CREDIT_LIMIT = 50_000.0;
 
-    // ================= APPLY =================
-
     @Override
-    public UUID applyCreditCard(UUID customerId, String cardHolderName) {
+    public UUID applyCreditCard(AuthUser user, String cardHolderName) {
+
+        UUID customerId = user.getCustomerId();
+        UUID accountId = user.getAccountId();
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() ->
+                        BusinessException.notFound("Account not found"));
+
+        String storedName = normalize(account.getAccountHolderName());
+        String inputName = normalize(cardHolderName);
+
+        if (!storedName.equals(inputName)) {
+            throw BusinessException.badRequest(
+                    "Card holder name must match account holder name"
+            );
+        }
 
         boolean hasActive = creditCardRepo.findByCustomerId(customerId)
                 .stream()
@@ -51,7 +70,6 @@ public class CreditCardServiceImpl implements CreditCardService {
 
         double totalDebit = fetchTotalDebit(customerId);
 
-        // AUTO APPROVAL
         if (totalDebit >= AUTO_APPROVAL_THRESHOLD) {
             issueCard(customerId);
             return null;
@@ -59,7 +77,7 @@ public class CreditCardServiceImpl implements CreditCardService {
 
         CreditCardRequest request = CreditCardRequest.builder()
                 .customerId(customerId)
-                .cardHolderName(cardHolderName)
+                .cardHolderName(account.getAccountHolderName())
                 .status(CardStatus.PENDING)
                 .requestedAt(LocalDateTime.now())
                 .build();
@@ -67,7 +85,13 @@ public class CreditCardServiceImpl implements CreditCardService {
         return requestRepo.save(request).getId();
     }
 
-    // ================= ADMIN =================
+    private String normalize(String name) {
+        return name == null
+                ? ""
+                : name.trim()
+                .replaceAll("\\s+", " ")
+                .toUpperCase();
+    }
 
     @Override
     public CreditCardIssueResponse approveRequest(UUID requestId) {
@@ -107,8 +131,6 @@ public class CreditCardServiceImpl implements CreditCardService {
         req.setRejectionReason(reason);
         req.setDecidedAt(LocalDateTime.now());
     }
-
-    // ================= DASHBOARD (SINGLE SOURCE) =================
 
     @Override
     public CreditCardResponse getCreditCardSummary(UUID customerId) {

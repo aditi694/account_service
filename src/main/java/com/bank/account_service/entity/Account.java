@@ -58,4 +58,6 @@ public class Account {
     @Column(name = "last_processed_txn", unique = true)
     private String lastProcessedTransactionId;
 
+    @Column(name = "account_holder_name", nullable = false)
+    private String accountHolderName;
 }

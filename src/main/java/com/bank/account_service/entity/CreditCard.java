@@ -1,7 +1,6 @@
 package com.bank.account_service.entity;
 
 import com.bank.account_service.enums.CardStatus;
-import com.bank.account_service.enums.CardType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,14 +20,20 @@ public class CreditCard {
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false)
     private UUID customerId;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String cardNumber;
 
+    @Column(nullable = false)
     private double creditLimit;
+
+    @Column(nullable = false)
     private double availableCredit;
-    private double outstandingAmount;
+
+    @Column(nullable = false)
+    private double outstandingAmount = 0.0;
 
     @Enumerated(EnumType.STRING)
     private CardStatus status;

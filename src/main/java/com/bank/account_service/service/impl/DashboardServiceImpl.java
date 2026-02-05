@@ -85,7 +85,7 @@ public class DashboardServiceImpl implements DashboardService {
                                 : "N/A")
                         .dailyLimit(card.getDailyLimit())
                         .status(card.getStatus().name())
-                        .message(getCardStatusMessage(card.getStatus()))  // ✅
+                        .message(getCardStatusMessage(card.getStatus()))
                         .build()
                 )
                 .orElse(DebitCardResponse.builder()
@@ -93,7 +93,7 @@ public class DashboardServiceImpl implements DashboardService {
                         .expiry("N/A")
                         .dailyLimit(0)
                         .status("NOT_ISSUED")
-                        .message(CARD_NOT_ISSUED_MSG)  // ✅ AppConstants
+                        .message(CARD_NOT_ISSUED_MSG)
                         .build());
     }
 
@@ -157,7 +157,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .startDate(ins.getStartDate())
                 .endDate(ins.getEndDate())
                 .status(ins.getStatus())
-                .statusMessage(getInsuranceStatusMessage(ins.getStatus()))  // ✅
+                .statusMessage(getInsuranceStatusMessage(ins.getStatus()))
                 .build();
     }
 
