@@ -56,11 +56,11 @@ public class InternalAccountServiceImpl implements InternalAccountService {
                 .build();
 
         Account savedAccount = accountRepo.save(account);
-        log.info("Account created successfully: {}", savedAccount.getId());
+//        log.info("Account created successfully: {}", savedAccount.getId());
 
         issueDebitCardAutomatically(savedAccount);
 
-        log.info("Account setup completed with debit card");
+//        log.info("Account setup completed with debit card");
     }
 
     private void issueDebitCardAutomatically(Account account) {
@@ -144,7 +144,6 @@ public class InternalAccountServiceImpl implements InternalAccountService {
         Account account = accountRepo.findByAccountNumber(req.getAccountNumber())
                 .orElseThrow(BusinessException::accountNotFound);
 
-        // ✅ Idempotency per account (NOT global)
         if (req.getTransactionId().equals(account.getLastProcessedTransactionId())) {
             log.info("Duplicate transaction ignored: {}", req.getTransactionId());
             return;

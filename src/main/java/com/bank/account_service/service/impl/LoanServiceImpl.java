@@ -148,8 +148,6 @@ public class LoanServiceImpl implements LoanService {
         return loanRepository.findByStatus(LoanStatus.REQUESTED);
     }
 
-    // Helper methods
-
     private double calculateInterestRate(LoanType loanType) {
         return switch (loanType) {
             case PERSONAL -> 12.0;

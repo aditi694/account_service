@@ -14,17 +14,9 @@ public class BusinessException extends RuntimeException {
         this.status = status;
         this.errorCode = errorCode;
     }
-
-    // 400 BAD REQUEST
     public static BusinessException badRequest(String message) {
         return new BusinessException(message, HttpStatus.BAD_REQUEST, "BAD_REQUEST");
     }
-
-    public static BusinessException invalidAmount() {
-        return badRequest("Amount must be greater than zero");
-    }
-
-    // 401 UNAUTHORIZED
     public static BusinessException unauthorized(String message) {
         return new BusinessException(message, HttpStatus.UNAUTHORIZED, "UNAUTHORIZED");
     }
@@ -32,8 +24,6 @@ public class BusinessException extends RuntimeException {
     public static BusinessException invalidCredentials() {
         return unauthorized("Invalid account number or password");
     }
-
-    // 403 FORBIDDEN
     public static BusinessException forbidden(String message) {
         return new BusinessException(message, HttpStatus.FORBIDDEN, "FORBIDDEN");
     }
@@ -50,11 +40,6 @@ public class BusinessException extends RuntimeException {
         return forbidden("Account is inactive");
     }
 
-    public static BusinessException adminAccessRequired() {
-        return forbidden("Admin access required");
-    }
-
-    // 404 NOT FOUND
     public static BusinessException notFound(String message) {
         return new BusinessException(message, HttpStatus.NOT_FOUND, "NOT_FOUND");
     }
@@ -67,11 +52,6 @@ public class BusinessException extends RuntimeException {
         return notFound("Loan not found");
     }
 
-    public static BusinessException creditCardNotFound() {
-        return notFound("Credit card not found");
-    }
-
-    // 409 CONFLICT
     public static BusinessException conflict(String message) {
         return new BusinessException(message, HttpStatus.CONFLICT, "CONFLICT");
     }
@@ -80,8 +60,4 @@ public class BusinessException extends RuntimeException {
         return conflict("Insufficient balance");
     }
 
-    // 503 SERVICE UNAVAILABLE
-    public static BusinessException serviceUnavailable(String message) {
-        return new BusinessException(message, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
-    }
 }

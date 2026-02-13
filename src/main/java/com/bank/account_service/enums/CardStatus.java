@@ -7,5 +7,6 @@ public enum CardStatus {
     PENDING,
     APPROVED,
     REJECTED,
+    NOT_ISSUED
 //    CANCELLED
 }

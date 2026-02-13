@@ -33,7 +33,6 @@ public class CreditCardServiceImpl implements CreditCardService {
     private final TransactionClient transactionClient;
     private final AccountRepository accountRepository;
 
-
     private static final double AUTO_APPROVAL_THRESHOLD = 25_000.0;
     private static final double DEFAULT_CREDIT_LIMIT = 50_000.0;
 
@@ -93,6 +92,15 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .toUpperCase();
     }
 
+    private double fetchTotalDebit(UUID customerId) {
+        try {
+            return transactionClient.getTotalDebit(customerId);
+        } catch (Exception e) {
+            log.warn("Failed to fetch transaction summary for customer={}", customerId);
+            return 0.0;
+        }
+    }
+
     @Override
     public CreditCardIssueResponse approveRequest(UUID requestId) {
 
@@ -116,6 +124,19 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .message("Credit card approved and issued successfully")
                 .build();
     }
+    private CreditCard issueCard(UUID customerId) {
+
+        CreditCard card = CreditCard.builder()
+                .customerId(customerId)
+                .cardNumber(generateCardNumber())
+                .creditLimit(DEFAULT_CREDIT_LIMIT)
+                .availableCredit(DEFAULT_CREDIT_LIMIT)
+                .outstandingAmount(0.0)
+                .status(CardStatus.ACTIVE)
+                .build();
+
+        return creditCardRepo.save(card);
+    }
 
     @Override
     public void rejectRequest(UUID requestId, String reason) {
@@ -134,8 +155,6 @@ public class CreditCardServiceImpl implements CreditCardService {
 
     @Override
     public CreditCardResponse getCreditCardSummary(UUID customerId) {
-
-        // ACTIVE CARD HAS PRIORITY
         return creditCardRepo.findByCustomerId(customerId)
                 .stream()
                 .filter(card -> card.getStatus() == CardStatus.ACTIVE)
@@ -175,32 +194,10 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .message("Apply for a credit card to enjoy benefits")
                 .build();
     }
+
     @Override
     public List<CreditCardRequest> getPendingRequests() {
         return requestRepo.findByStatus(CardStatus.PENDING);
-    }
-
-    private CreditCard issueCard(UUID customerId) {
-
-        CreditCard card = CreditCard.builder()
-                .customerId(customerId)
-                .cardNumber(generateCardNumber())
-                .creditLimit(DEFAULT_CREDIT_LIMIT)
-                .availableCredit(DEFAULT_CREDIT_LIMIT)
-                .outstandingAmount(0.0)
-                .status(CardStatus.ACTIVE)
-                .build();
-
-        return creditCardRepo.save(card);
-    }
-
-    private double fetchTotalDebit(UUID customerId) {
-        try {
-            return transactionClient.getTotalDebit(customerId);
-        } catch (Exception e) {
-            log.warn("Failed to fetch transaction summary for customer={}", customerId);
-            return 0.0;
-        }
     }
 
     private String generateCardNumber() {
