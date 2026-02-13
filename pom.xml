@@ -194,7 +194,7 @@
 								<exclude>**/util/**</exclude>
 								<exclude>**/enums/**</exclude>
 								<exclude>**/security/JwtFilter.class/**</exclude>
-								<exclude>**/security/AuthUser.class/**</exclude>
+								<exclude>**/security/AuthUser*/**</exclude>
 								<exclude>**/exception/GlobalExceptionHandler.class/**</exclude>
 								<exclude>**/*Application.class</exclude>
 							</excludes>
