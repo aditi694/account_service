@@ -1,113 +1,86 @@
 package com.bank.account_service.controller;
-import com.bank.account_service.dto.insurance.InsuranceRequestResponse;
-import com.bank.account_service.dto.insurance.InsuranceResponse;
-import com.bank.account_service.security.JwtFilter;
-import com.bank.account_service.security.JwtUtil;
-import com.bank.account_service.security.SecurityUtil;
-import com.bank.account_service.service.*;
-import com.bank.account_service.util.AppConstants;
-import org.junit.jupiter.api.Test;
 
+import com.bank.account_service.dto.auth.BaseResponse;
+import com.bank.account_service.dto.insurance.*;
+import com.bank.account_service.security.SecurityUtil;
+import com.bank.account_service.service.InsuranceService;
+import com.bank.account_service.util.AppConstants;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.UUID;
 
-import static com.bank.account_service.enums.InsuranceStatus.ACTIVE;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(InsuranceController.class)
-@AutoConfigureMockMvc(addFilters = false)
-class InsuranceControllerTest {
+@ExtendWith(MockitoExtension.class)
+public class InsuranceControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private InsuranceService service;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
-    @MockBean
-    private JwtFilter jwtFilter;
+    @InjectMocks
+    private InsuranceController controller;
 
     @Test
-    void insuranceRequest_success() throws Exception{
+    void testRequestInsurance() {
         UUID accountId = UUID.randomUUID();
-        String json = """
-            {
-              "insuranceType": "LIFE",
-              "coverageAmount": 100000
-            }
-            """;
-
+        IssueInsuranceRequest request = new IssueInsuranceRequest();
         InsuranceRequestResponse response =
-                InsuranceRequestResponse.builder()
-                        .insuranceId("POL123")
-                        .status(ACTIVE)
-                        .build();
+                new InsuranceRequestResponse();
 
-        try(MockedStatic<SecurityUtil> securityMock = Mockito.mockStatic(SecurityUtil.class)){
-            securityMock.when(SecurityUtil::getCurrentAccountId).thenReturn(accountId);
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
-            when(service.requestInsurance(eq(accountId),any()))
+            mocked.when(SecurityUtil::getCurrentAccountId)
+                    .thenReturn(accountId);
+
+            when(service.requestInsurance(accountId, request))
                     .thenReturn(response);
 
-            mockMvc.perform(post("/api/account/insurance/request")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.insuranceId")
-                            .value("POL123"))
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Insurance processed"));
+            BaseResponse<InsuranceRequestResponse> result =
+                    controller.request(request);
 
-            verify(service).requestInsurance(eq(accountId), any());        }
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(response, result.getData());
+            Assertions.assertEquals("Insurance processed",
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
+
+            verify(service).requestInsurance(accountId, request);
+        }
     }
+
     @Test
-    void myInsurance_success() throws Exception {
-
+    void testMyInsurance() {
         UUID customerId = UUID.randomUUID();
+        List<InsuranceResponse> list =
+                List.of(new InsuranceResponse());
 
-        List<InsuranceResponse> list = List.of(
-                InsuranceResponse.builder()
-                        .policyNumber("POL123")
-                        .insuranceType("LIFE")
-                        .build()
-        );
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
-        try (MockedStatic<SecurityUtil> securityMock =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            securityMock.when(SecurityUtil::getCurrentCustomerId)
+            mocked.when(SecurityUtil::getCurrentCustomerId)
                     .thenReturn(customerId);
 
             when(service.getInsurances(customerId))
                     .thenReturn(list);
 
-            mockMvc.perform(get("/api/account/insurance"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[0].policyNumber")
-                            .value("POL123"))
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value(AppConstants.SUCCESS_MSG));
+            BaseResponse<List<InsuranceResponse>> result =
+                    controller.myInsurance();
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(list, result.getData());
+            Assertions.assertEquals(AppConstants.SUCCESS_MSG,
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
 
             verify(service).getInsurances(customerId);
         }
     }
-
 }

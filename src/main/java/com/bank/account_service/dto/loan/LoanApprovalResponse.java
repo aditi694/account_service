@@ -1,11 +1,15 @@
 package com.bank.account_service.dto.loan;
 
 import com.bank.account_service.enums.LoanStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoanApprovalResponse {
 
     private String loanId;

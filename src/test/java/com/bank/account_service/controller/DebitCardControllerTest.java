@@ -1,134 +1,137 @@
 package com.bank.account_service.controller;
 
+import com.bank.account_service.dto.auth.BaseResponse;
 import com.bank.account_service.dto.card.DebitCardResponse;
+import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.security.AuthUser;
-import com.bank.account_service.security.JwtFilter;
-import com.bank.account_service.security.JwtUtil;
 import com.bank.account_service.security.SecurityUtil;
 import com.bank.account_service.service.CardService;
 import com.bank.account_service.util.AppConstants;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import com.bank.account_service.controller.DebitCardController;
-
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DebitCardController.class)
-@AutoConfigureMockMvc(addFilters = false)
-class DebitCardControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+@ExtendWith(MockitoExtension.class)
+public class DebitCardControllerTest {
 
-    @MockBean
+    @Mock
     private CardService service;
-    @MockBean
-    private JwtUtil jwtUtil;
 
-    @MockBean
-    private JwtFilter jwtFilter;
+    @InjectMocks
+    private DebitCardController controller;
 
     @Test
-    void debitCardStatus_success() throws Exception {
+    void testMyDebitCard() {
         UUID accountId = UUID.randomUUID();
-        DebitCardResponse response = DebitCardResponse.builder()
-                .cardNumber("1234")
-                .status("ACTIVE")
-                .build();
-        try (MockedStatic<SecurityUtil> securityMock = Mockito.mockStatic(SecurityUtil.class)) {
-            securityMock.when(SecurityUtil::getCurrentAccountId)
+        DebitCardResponse response = new DebitCardResponse();
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentAccountId)
                     .thenReturn(accountId);
 
             when(service.getDebitCard(accountId))
                     .thenReturn(response);
-            mockMvc.perform(get("/api/account/cards/debit"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.cardNumber").value("1234"))
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value(AppConstants.SUCCESS_MSG));
+
+            BaseResponse<DebitCardResponse> result =
+                    controller.myDebitCard();
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(response, result.getData());
+            Assertions.assertEquals(AppConstants.SUCCESS_MSG,
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
 
             verify(service).getDebitCard(accountId);
         }
     }
+
     @Test
-    void block_adminSuccess() throws Exception {
-
+    void testBlock_Admin() {
         UUID accountId = UUID.randomUUID();
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(true);
 
-        AuthUser admin = AuthUser.builder()
-                .role("ROLE_ADMIN")
-                .build();
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
-        try (MockedStatic<SecurityUtil> securityMock =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            securityMock.when(SecurityUtil::getCurrentUser)
-                    .thenReturn(admin);
-
-            mockMvc.perform(post("/api/admin/cards/debit/{id}/block", accountId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Debit card blocked"));
-
-            verify(service).blockDebitCard(accountId);
-        }
-    }
-    @Test
-    void unblock_adminSuccess() throws Exception {
-
-        UUID accountId = UUID.randomUUID();
-
-        AuthUser admin = AuthUser.builder()
-                .role("ROLE_ADMIN")
-                .build();
-
-        try (MockedStatic<SecurityUtil> securityMock =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            securityMock.when(SecurityUtil::getCurrentUser)
-                    .thenReturn(admin);
-
-            mockMvc.perform(post("/api/admin/cards/debit/{id}/unblock", accountId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Debit card unblocked"));
-
-            verify(service).unblockDebitCard(accountId);
-        }
-    }
-    @Test
-    void nonAdminForbidden_unblockUsecase() throws Exception {
-
-        UUID accountId = UUID.randomUUID();
-
-        AuthUser user = AuthUser.builder()
-                .role("ROLE_CUSTOMER")
-                .build();
-
-        try (MockedStatic<SecurityUtil> securityMock =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            securityMock.when(SecurityUtil::getCurrentUser)
+            mocked.when(SecurityUtil::getCurrentUser)
                     .thenReturn(user);
 
-            mockMvc.perform(post("/api/admin/cards/debit/{id}/unblock", accountId))
-                    .andExpect(status().isForbidden());
+            BaseResponse<Void> result =
+                    controller.block(accountId);
 
-            verify(service, never()).unblockDebitCard(any());
+            verify(service).blockDebitCard(accountId);
+
+            Assertions.assertNull(result.getData());
+            Assertions.assertEquals("Debit card blocked",
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
         }
     }
 
+    @Test
+    void testUnblock_Admin() {
+        UUID accountId = UUID.randomUUID();
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(true);
 
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            BaseResponse<Void> result =
+                    controller.unblock(accountId);
+
+            verify(service).unblockDebitCard(accountId);
+
+            Assertions.assertNull(result.getData());
+            Assertions.assertEquals("Debit card unblocked",
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
+        }
+    }
+
+    @Test
+    void testBlock_NotAdmin_ShouldThrow() {
+        UUID accountId = UUID.randomUUID();
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(false);
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            Assertions.assertThrows(BusinessException.class,
+                    () -> controller.block(accountId));
+        }
+    }
+
+    @Test
+    void testUnblock_NotAdmin_ShouldThrow() {
+        UUID accountId = UUID.randomUUID();
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(false);
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            Assertions.assertThrows(BusinessException.class,
+                    () -> controller.unblock(accountId));
+        }
+    }
 }

@@ -1,255 +1,213 @@
 package com.bank.account_service.controller;
 
-import com.bank.account_service.controller.AccountController;
-import com.bank.account_service.dto.account.AccountDashboardResponse;
-import com.bank.account_service.dto.account.BalanceResponse;
-import com.bank.account_service.dto.account.ChangePasswordResponse;
-import com.bank.account_service.dto.auth.LoginResponse;
-import com.bank.account_service.dto.loan.LoanApprovalResponse;
-import com.bank.account_service.dto.loan.LoanRequestResponse;
+import com.bank.account_service.dto.auth.BaseResponse;
+import com.bank.account_service.dto.loan.*;
+import com.bank.account_service.entity.Loan;
 import com.bank.account_service.enums.LoanStatus;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.security.AuthUser;
-import com.bank.account_service.security.JwtFilter;
-import com.bank.account_service.security.JwtUtil;
 import com.bank.account_service.security.SecurityUtil;
-import com.bank.account_service.service.*;
+import com.bank.account_service.service.LoanService;
 import com.bank.account_service.util.AppConstants;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(LoanController.class)
-@AutoConfigureMockMvc(addFilters = false)
-class LoanControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+@ExtendWith(MockitoExtension.class)
+public class LoanControllerTest {
 
-    @MockBean
+    @Mock
     private LoanService service;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
-    @MockBean
-    private JwtFilter jwtFilter;
+    @InjectMocks
+    private LoanController controller;
 
     @Test
-    void requestLoan_autoApproved() throws Exception {
-
+    void testRequestLoan_Approved() {
         UUID accountId = UUID.randomUUID();
+        IssueLoanRequest request = new IssueLoanRequest();
 
-        LoanRequestResponse response = LoanRequestResponse.builder()
-                .loanId("L1")
-                .status(LoanStatus.ACTIVE)
-                .message("Approved")
-                .build();
-
-        String json = ("""
-                 {
-                  "loanType":"PERSONAL",
-                  "amount":10000
-                }
-                """);
-
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            mocked.when(SecurityUtil::getCurrentAccountId)
-                    .thenReturn(accountId);
-
-            when(service.requestLoan(eq(accountId), any()))
-                    .thenReturn(response);
-
-            mockMvc.perform(post("/api/account/loans/request")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Loan approved successfully"));
-
-            verify(service).requestLoan(eq(accountId), any());
-        }
-    }
-
-    @Test
-    void requestLoan_pending() throws Exception {
-
-        UUID accountId = UUID.randomUUID();
-
-        LoanRequestResponse response = LoanRequestResponse.builder()
-                .loanId("L2")
-                .status(LoanStatus.REQUESTED)
-                .message("Pending")
-                .build();
-        String json = ("""
-                {
-                  "loanType":"PERSONAL",
-                  "amount":10000
-                }
-                """);
+        LoanRequestResponse response = new LoanRequestResponse();
+        response.setStatus(LoanStatus.ACTIVE);
 
         try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
             mocked.when(SecurityUtil::getCurrentAccountId)
                     .thenReturn(accountId);
 
-            when(service.requestLoan(eq(accountId), any()))
+            when(service.requestLoan(accountId, request))
                     .thenReturn(response);
 
-            mockMvc.perform(post("/api/account/loans/request")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Loan request submitted"));
+            BaseResponse<LoanRequestResponse> result =
+                    controller.requestLoan(request);
+
+            Assertions.assertEquals(response, result.getData());
+            Assertions.assertEquals("Loan approved successfully",
+                    result.getResultInfo().getResultMsg());
+            Assertions.assertEquals(AppConstants.SUCCESS_CODE,
+                    result.getResultInfo().getResultCode());
         }
     }
 
     @Test
-    void myLoansStatus_success() throws Exception {
+    void testRequestLoan_Submitted() {
+        UUID accountId = UUID.randomUUID();
+        IssueLoanRequest request = new IssueLoanRequest();
 
+        LoanRequestResponse response = new LoanRequestResponse();
+        response.setStatus(LoanStatus.REQUESTED);
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentAccountId)
+                    .thenReturn(accountId);
+
+            when(service.requestLoan(accountId, request))
+                    .thenReturn(response);
+
+            BaseResponse<LoanRequestResponse> result =
+                    controller.requestLoan(request);
+
+            Assertions.assertEquals("Loan request submitted",
+                    result.getResultInfo().getResultMsg());
+        }
+    }
+
+    @Test
+    void testMyLoans() {
         UUID customerId = UUID.randomUUID();
+        List<LoanResponse> list =
+                List.of(new LoanResponse());
 
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
             mocked.when(SecurityUtil::getCurrentCustomerId)
                     .thenReturn(customerId);
 
             when(service.getLoans(customerId))
-                    .thenReturn(List.of());
+                    .thenReturn(list);
 
-            mockMvc.perform(get("/api/account/loans"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value(AppConstants.SUCCESS_MSG));
+            BaseResponse<List<LoanResponse>> result =
+                    controller.myLoans();
 
-            verify(service).getLoans(customerId);
+            Assertions.assertEquals(list, result.getData());
+            Assertions.assertEquals(AppConstants.SUCCESS_MSG,
+                    result.getResultInfo().getResultMsg());
         }
     }
+
     @Test
-    void pendingLoans_adminSuccess() throws Exception {
+    void testPendingLoans_Admin() {
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(true);
 
-        AuthUser admin = AuthUser.builder()
-                .accountId(UUID.randomUUID())
-                .customerId(UUID.randomUUID())
-                .role("ROLE_ADMIN")
-                .build();
+        List<Loan> loans = List.of(new Loan());
 
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            mocked.when(SecurityUtil::getCurrentUser)
-                    .thenReturn(admin);
-
-            when(service.getPendingLoans())
-                    .thenReturn(List.of());
-
-            mockMvc.perform(get("/api/admin/loans/pending"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.success").value(true));
-
-            verify(service).getPendingLoans();
-        }
-    }
-    @Test
-    void approve_success() throws Exception {
-
-        AuthUser admin = AuthUser.builder()
-                .role("ROLE_ADMIN")
-                .build();
-
-        LoanApprovalResponse response =
-                LoanApprovalResponse.builder()
-                        .loanId("L1")
-                        .build();
-
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            mocked.when(SecurityUtil::getCurrentUser)
-                    .thenReturn(admin);
-
-            when(service.approveLoan("L1"))
-                    .thenReturn(response);
-
-            mockMvc.perform(post("/api/admin/loans/L1/approve"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value(AppConstants.LOAN_APPROVED));
-
-            verify(service).approveLoan("L1");
-        }
-    }
-    @Test
-    void reject_success() throws Exception {
-
-        AuthUser admin = AuthUser.builder()
-                .role("ROLE_ADMIN")
-                .build();
-
-        LoanApprovalResponse response =
-                LoanApprovalResponse.builder()
-                        .loanId("L1")
-                        .build();
-
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
-
-            mocked.when(SecurityUtil::getCurrentUser)
-                    .thenReturn(admin);
-
-            when(service.rejectLoan("L1"))
-                    .thenReturn(response);
-
-            mockMvc.perform(post("/api/admin/loans/L1/reject"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultInfo.resultMsg")
-                            .value("Loan rejected"));
-
-            verify(service).rejectLoan("L1");
-        }
-    }
-    @Test
-    void nonAdminForbidden_approveLoan_UseCase() throws Exception {
-
-        AuthUser user = AuthUser.builder()
-                .role("ROLE_CUSTOMER")
-                .build();
-
-        try (MockedStatic<SecurityUtil> mocked =
-                     Mockito.mockStatic(SecurityUtil.class)) {
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
             mocked.when(SecurityUtil::getCurrentUser)
                     .thenReturn(user);
 
-            mockMvc.perform(post("/api/admin/loans/L1/approve"))
-                    .andExpect(status().isForbidden());
+            when(service.getPendingLoans())
+                    .thenReturn(loans);
 
-            verify(service, never()).approveLoan(any());
+            BaseResponse<Map<String, Object>> result =
+                    controller.pendingLoans();
+
+            Assertions.assertEquals(1,
+                    result.getData().get("count"));
         }
     }
 
+    @Test
+    void testPendingLoans_NotAdmin_ShouldThrow() {
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(false);
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            Assertions.assertThrows(BusinessException.class,
+                    () -> controller.pendingLoans());
+        }
+    }
+
+    @Test
+    void testApprove_Admin() {
+        String loanId = "123";
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(true);
+
+        LoanApprovalResponse response =
+                new LoanApprovalResponse();
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            when(service.approveLoan(loanId))
+                    .thenReturn(response);
+
+            BaseResponse<LoanApprovalResponse> result =
+                    controller.approve(loanId);
+
+            Assertions.assertEquals(response, result.getData());
+            Assertions.assertEquals(AppConstants.LOAN_APPROVED,
+                    result.getResultInfo().getResultMsg());
+        }
+    }
+
+    @Test
+    void testReject_Admin() {
+        String loanId = "123";
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(true);
+
+        LoanApprovalResponse response =
+                new LoanApprovalResponse();
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            when(service.rejectLoan(loanId))
+                    .thenReturn(response);
+
+            BaseResponse<LoanApprovalResponse> result =
+                    controller.reject(loanId);
+
+            Assertions.assertEquals(response, result.getData());
+            Assertions.assertEquals("Loan rejected",
+                    result.getResultInfo().getResultMsg());
+        }
+    }
+
+    @Test
+    void testApprove_NotAdmin_ShouldThrow() {
+        AuthUser user = mock(AuthUser.class);
+        when(user.isAdmin()).thenReturn(false);
+
+        try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+
+            mocked.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(user);
+
+            Assertions.assertThrows(BusinessException.class,
+                    () -> controller.approve("123"));
+        }
+    }
 }

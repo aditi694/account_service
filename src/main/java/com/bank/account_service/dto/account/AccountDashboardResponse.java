@@ -4,8 +4,10 @@ import com.bank.account_service.dto.card.CreditCardResponse;
 import com.bank.account_service.dto.card.DebitCardResponse;
 import com.bank.account_service.dto.insurance.InsuranceResponse;
 import com.bank.account_service.dto.loan.LoanResponse;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.UUID;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AccountDashboardResponse {
 
     private UUID accountId;
