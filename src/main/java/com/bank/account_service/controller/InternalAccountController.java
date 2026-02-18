@@ -44,6 +44,7 @@ public class InternalAccountController {
                 .findByAccountNumber(accountNumber)
                 .isPresent();
     }
+
     @PostMapping("/{accountNumber}/credit")
     public void credit(@PathVariable String accountNumber,
                        @RequestParam BigDecimal amount) {
@@ -70,6 +71,7 @@ public class InternalAccountController {
                 .orElseThrow(BusinessException::accountNotFound);
         return account.getCustomerId();
     }
+
     @PostMapping("/update-balance")
     public void updateBalance(@RequestBody BalanceUpdateRequest request) {
         service.updateBalance(request);

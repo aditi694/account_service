@@ -40,7 +40,6 @@ class AccountServiceImplTest {
 
     @Test
     void login_success() {
-
         LoginRequest request = new LoginRequest();
         request.setAccountNumber("12345");
         request.setPassword("password");
