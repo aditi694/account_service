@@ -1,7 +1,7 @@
 package com.bank.account_service.service;
 
-import com.bank.account_service.dto.account.AccountSyncRequest;
-import com.bank.account_service.dto.account.BalanceUpdateRequest;
+import com.bank.account_service.dto.account.request.AccountSyncRequest;
+import com.bank.account_service.dto.account.request.BalanceUpdateRequest;
 
 import java.math.BigDecimal;
 

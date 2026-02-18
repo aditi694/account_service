@@ -1,9 +1,9 @@
-package com.bank.account_service.dto.account;
+package com.bank.account_service.dto.account.response;
 
-import com.bank.account_service.dto.card.CreditCardResponse;
-import com.bank.account_service.dto.card.DebitCardResponse;
-import com.bank.account_service.dto.insurance.InsuranceResponse;
-import com.bank.account_service.dto.loan.LoanResponse;
+import com.bank.account_service.dto.card.response.CreditCardResponse;
+import com.bank.account_service.dto.card.response.DebitCardResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceResponse;
+import com.bank.account_service.dto.loan.response.LoanResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

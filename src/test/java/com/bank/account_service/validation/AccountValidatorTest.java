@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class AccountValidatorTest {
     @Test
     void validateLoginRequest_valid() {
-
         LoginRequest request = new LoginRequest();
         request.setAccountNumber("ACC123");
         request.setPassword("pass");
@@ -22,7 +21,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateLoginRequest_nullRequest() {
-
         BusinessException ex = assertThrows(
                 BusinessException.class,
                 () -> AccountValidator.validateLoginRequest(null)
@@ -32,7 +30,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateLoginRequest_accountNumberNull() {
-
         LoginRequest request = new LoginRequest();
         request.setPassword("pass");
 
@@ -45,7 +42,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateLoginRequest_accountNumberBlank() {
-
         LoginRequest request = new LoginRequest();
         request.setAccountNumber(" ");
         request.setPassword("pass");
@@ -59,7 +55,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateLoginRequest_passwordNull() {
-
         LoginRequest request = new LoginRequest();
         request.setAccountNumber("ACC123");
 
@@ -72,7 +67,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateLoginRequest_passwordBlank() {
-
         LoginRequest request = new LoginRequest();
         request.setAccountNumber("ACC123");
         request.setPassword("");
@@ -87,7 +81,6 @@ class AccountValidatorTest {
 
     @Test
     void validateAccountStatus_active() {
-
         Account account = Account.builder()
                 .status(AccountStatus.ACTIVE)
                 .build();
@@ -98,7 +91,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateAccountStatus_blocked() {
-
         Account account = Account.builder()
                 .status(AccountStatus.BLOCKED)
                 .build();
@@ -112,7 +104,6 @@ class AccountValidatorTest {
     }
     @Test
     void validateAccountStatus_closed() {
-
         Account account = Account.builder()
                 .status(AccountStatus.CLOSED)
                 .build();

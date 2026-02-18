@@ -1,6 +1,6 @@
 package com.bank.account_service.service;
 
-import com.bank.account_service.dto.card.DebitCardResponse;
+import com.bank.account_service.dto.card.response.DebitCardResponse;
 
 import java.util.UUID;
 

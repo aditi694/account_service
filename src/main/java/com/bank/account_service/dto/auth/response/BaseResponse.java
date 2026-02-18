@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.auth;
+package com.bank.account_service.dto.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

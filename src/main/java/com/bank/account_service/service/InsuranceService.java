@@ -1,8 +1,8 @@
 package com.bank.account_service.service;
 
 import com.bank.account_service.dto.insurance.IssueInsuranceRequest;
-import com.bank.account_service.dto.insurance.InsuranceRequestResponse;
-import com.bank.account_service.dto.insurance.InsuranceResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceRequestResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceResponse;
 
 import java.util.List;
 import java.util.UUID;

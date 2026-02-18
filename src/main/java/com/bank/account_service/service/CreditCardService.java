@@ -1,7 +1,7 @@
 package com.bank.account_service.service;
 
-import com.bank.account_service.dto.card.CreditCardIssueResponse;
-import com.bank.account_service.dto.card.CreditCardResponse;
+import com.bank.account_service.dto.card.response.CreditCardIssueResponse;
+import com.bank.account_service.dto.card.response.CreditCardResponse;
 import com.bank.account_service.entity.CreditCardRequest;
 import com.bank.account_service.security.AuthUser;
 

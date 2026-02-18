@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.card;
+package com.bank.account_service.dto.card.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DebitCardResponse {
+public class CreditCardResponse {
     private String cardNumber;
-    private String expiry;
-    private int dailyLimit;
+    private double creditLimit;
+    private double availableCredit;
+    private double outstanding;
     private String status;
     private String message;
 }

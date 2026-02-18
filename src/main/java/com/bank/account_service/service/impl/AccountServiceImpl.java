@@ -1,9 +1,8 @@
 package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.auth.LoginRequest;
-import com.bank.account_service.dto.auth.LoginResponse;
+import com.bank.account_service.dto.auth.response.LoginResponse;
 import com.bank.account_service.entity.Account;
-import com.bank.account_service.enums.AccountStatus;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;
 import com.bank.account_service.security.JwtUtil;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @Slf4j
 @Service

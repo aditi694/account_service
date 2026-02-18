@@ -1,7 +1,7 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.account.ChangePasswordRequest;
-import com.bank.account_service.dto.account.ChangePasswordResponse;
+import com.bank.account_service.dto.account.request.ChangePasswordRequest;
+import com.bank.account_service.dto.account.response.ChangePasswordResponse;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;

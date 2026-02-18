@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.loan;
+package com.bank.account_service.dto.loan.response;
 
 import com.bank.account_service.enums.LoanStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+//used for excluding field when null
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @Builder

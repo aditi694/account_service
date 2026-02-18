@@ -1,6 +1,5 @@
-package com.bank.account_service.dto.loan;
+package com.bank.account_service.dto.account.response;
 
-import com.bank.account_service.enums.LoanStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoanRequestResponse {
-
-    private String loanId;
-    private LoanStatus status;
+public class ChangePasswordResponse {
+    private boolean success;
     private String message;
 }

@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.account;
+package com.bank.account_service.dto.account.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;

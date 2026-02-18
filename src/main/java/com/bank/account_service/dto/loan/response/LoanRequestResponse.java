@@ -1,5 +1,6 @@
-package com.bank.account_service.dto.card;
+package com.bank.account_service.dto.loan.response;
 
+import com.bank.account_service.enums.LoanStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,9 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreditCardIssueResponse {
-    private String cardNumber;
-    private double creditLimit;
-    private String status;
+public class LoanRequestResponse {
+
+    private String loanId;
+    private LoanStatus status;
     private String message;
 }

@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.insurance;
+package com.bank.account_service.dto.insurance.response;
 
 import com.bank.account_service.enums.InsuranceStatus;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package com.bank.account_service.service;
 
-import com.bank.account_service.dto.account.ChangePasswordRequest;
-import com.bank.account_service.dto.account.ChangePasswordResponse;
+import com.bank.account_service.dto.account.request.ChangePasswordRequest;
+import com.bank.account_service.dto.account.response.ChangePasswordResponse;
 
 import java.util.UUID;
 

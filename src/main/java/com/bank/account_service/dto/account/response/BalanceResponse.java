@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.account;
+package com.bank.account_service.dto.account.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

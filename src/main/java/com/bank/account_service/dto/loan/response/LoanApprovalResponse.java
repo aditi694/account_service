@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.loan;
+package com.bank.account_service.dto.loan.response;
 
 import com.bank.account_service.enums.LoanStatus;
 import lombok.AllArgsConstructor;

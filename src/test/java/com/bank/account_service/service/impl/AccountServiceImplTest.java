@@ -1,7 +1,7 @@
 package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.auth.LoginRequest;
-import com.bank.account_service.dto.auth.LoginResponse;
+import com.bank.account_service.dto.auth.response.LoginResponse;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.enums.AccountStatus;
 import com.bank.account_service.exception.BusinessException;
@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -92,8 +93,15 @@ class AccountServiceImplTest {
         when(passwordEncoder.matches("wrongPassword", "hashed"))
                 .thenReturn(false);
 
-        assertThrows(BusinessException.class,
-                () -> service.login(request));
+//        cover the exception class
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.login(request)
+        );
+
+        assertEquals("Invalid account number or password", exception.getMessage());
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
+        assertEquals("UNAUTHORIZED", exception.getErrorCode());
 
         verify(passwordEncoder)
                 .matches("wrongPassword", "hashed");

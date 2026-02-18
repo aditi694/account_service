@@ -1,6 +1,6 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.card.DebitCardResponse;
+import com.bank.account_service.dto.card.response.DebitCardResponse;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.DebitCard;
 import com.bank.account_service.enums.CardStatus;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.UUID;
+
 @Service
 public class CardServiceImpl implements CardService {
 

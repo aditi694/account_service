@@ -1,7 +1,7 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.account.AccountSyncRequest;
-import com.bank.account_service.dto.account.BalanceUpdateRequest;
+import com.bank.account_service.dto.account.request.AccountSyncRequest;
+import com.bank.account_service.dto.account.request.BalanceUpdateRequest;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.DebitCard;
 import com.bank.account_service.enums.AccountStatus;

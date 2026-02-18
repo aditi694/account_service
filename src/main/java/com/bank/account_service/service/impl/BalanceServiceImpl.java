@@ -1,6 +1,6 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.account.BalanceResponse;
+import com.bank.account_service.dto.account.response.BalanceResponse;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;

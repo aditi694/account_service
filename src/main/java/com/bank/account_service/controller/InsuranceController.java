@@ -1,7 +1,9 @@
 package com.bank.account_service.controller;
 
 import com.bank.account_service.dto.insurance.*;
-import com.bank.account_service.dto.auth.BaseResponse;
+import com.bank.account_service.dto.auth.response.BaseResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceRequestResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceResponse;
 import com.bank.account_service.security.SecurityUtil;
 import com.bank.account_service.service.InsuranceService;
 import com.bank.account_service.util.AppConstants;

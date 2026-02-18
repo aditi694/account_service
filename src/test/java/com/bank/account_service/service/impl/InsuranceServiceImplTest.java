@@ -1,7 +1,7 @@
 package com.bank.account_service.service.impl;
 
-import com.bank.account_service.dto.insurance.InsuranceRequestResponse;
-import com.bank.account_service.dto.insurance.InsuranceResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceRequestResponse;
+import com.bank.account_service.dto.insurance.response.InsuranceResponse;
 import com.bank.account_service.dto.insurance.IssueInsuranceRequest;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.Insurance;

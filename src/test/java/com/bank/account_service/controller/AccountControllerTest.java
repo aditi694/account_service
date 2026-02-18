@@ -1,7 +1,12 @@
 package com.bank.account_service.controller;
 
-import com.bank.account_service.dto.account.*;
+import com.bank.account_service.dto.account.request.ChangePasswordRequest;
+import com.bank.account_service.dto.account.response.AccountDashboardResponse;
+import com.bank.account_service.dto.account.response.BalanceResponse;
+import com.bank.account_service.dto.account.response.ChangePasswordResponse;
 import com.bank.account_service.dto.auth.*;
+import com.bank.account_service.dto.auth.response.BaseResponse;
+import com.bank.account_service.dto.auth.response.LoginResponse;
 import com.bank.account_service.security.AuthUser;
 import com.bank.account_service.security.SecurityUtil;
 import com.bank.account_service.service.*;
