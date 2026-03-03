@@ -4,9 +4,9 @@ import static com.bank.account_service.util.AppConstants.*;
 
 import com.bank.account_service.dto.account.response.AccountDashboardResponse;
 import com.bank.account_service.dto.card.response.DebitCardResponse;
-import com.bank.account_service.dto.client.BankBranchDto;
-import com.bank.account_service.dto.client.CustomerClient;
-import com.bank.account_service.dto.client.CustomerSnapshot;
+import com.bank.account_service.client.BankBranchDto;
+import com.bank.account_service.client.CustomerClient;
+import com.bank.account_service.client.CustomerSnapshot;
 import com.bank.account_service.dto.insurance.response.InsuranceResponse;
 import com.bank.account_service.dto.loan.response.LoanResponse;
 import com.bank.account_service.entity.*;

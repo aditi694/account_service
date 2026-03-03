@@ -43,6 +43,7 @@ public class InternalAccountServiceImpl implements InternalAccountService {
         }
 
         Account account = Account.builder()
+                .accountHolderName(request.getAccountHolderName())
                 .accountNumber(request.getAccountNumber())
                 .customerId(UUID.fromString(request.getCustomerId()))
                 .accountType(AccountType.valueOf(request.getAccountType().toUpperCase()))

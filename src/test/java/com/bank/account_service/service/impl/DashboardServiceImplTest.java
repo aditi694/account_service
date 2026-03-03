@@ -2,9 +2,9 @@ package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.account.response.AccountDashboardResponse;
 import com.bank.account_service.dto.card.response.CreditCardResponse;
-import com.bank.account_service.dto.client.BankBranchDto;
-import com.bank.account_service.dto.client.CustomerClient;
-import com.bank.account_service.dto.client.CustomerSnapshot;
+import com.bank.account_service.client.BankBranchDto;
+import com.bank.account_service.client.CustomerClient;
+import com.bank.account_service.client.CustomerSnapshot;
 import com.bank.account_service.dto.loan.response.LoanResponse;
 import com.bank.account_service.entity.*;
 import com.bank.account_service.enums.*;

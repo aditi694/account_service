@@ -1,4 +1,4 @@
-package com.bank.account_service.dto.client;
+package com.bank.account_service.client;
 
 import lombok.Getter;
 import lombok.Setter;

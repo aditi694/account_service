@@ -34,4 +34,5 @@ public class AccountSyncRequest implements Serializable {
 
     @NotBlank(message = "IFSC code is required")
     private String ifscCode;
+    private String accountHolderName;
 }

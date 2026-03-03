@@ -2,7 +2,7 @@ package com.bank.account_service.service.impl;
 
 import com.bank.account_service.dto.card.response.CreditCardIssueResponse;
 import com.bank.account_service.dto.card.response.CreditCardResponse;
-import com.bank.account_service.dto.client.TransactionClient;
+import com.bank.account_service.client.TransactionClient;
 import com.bank.account_service.entity.*;
 import com.bank.account_service.enums.CardStatus;
 import com.bank.account_service.exception.BusinessException;
