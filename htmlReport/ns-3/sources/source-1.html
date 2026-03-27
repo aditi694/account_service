@@ -1,0 +1,194 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AccountController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AccountController (com.bank.account_service.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AccountController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.controller;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.account.*;
+&nbsp;import com.bank.account_service.dto.auth.*;
+&nbsp;import com.bank.account_service.dto.auth.response.BaseResponse;
+&nbsp;import com.bank.account_service.security.SecurityUtil;
+&nbsp;import com.bank.account_service.service.*;
+&nbsp;import com.bank.account_service.util.AppConstants;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/account&quot;)
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class AccountController {
+&nbsp;
+&nbsp;    private final AccountService accountService;
+&nbsp;    private final BalanceService balanceService;
+&nbsp;    private final DashboardService dashboardService;
+&nbsp;    private final PasswordService passwordService;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/login&quot;)
+&nbsp;    public BaseResponse&lt;LoginResponse&gt; login(@Valid @RequestBody LoginRequest request) {
+&nbsp;
+<b class="fc">&nbsp;        LoginResponse data = accountService.login(request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/balance&quot;)
+&nbsp;    public BaseResponse&lt;BalanceResponse&gt; getBalance() {
+&nbsp;
+<b class="fc">&nbsp;        UUID accountId = SecurityUtil.getCurrentAccountId();</b>
+&nbsp;
+<b class="fc">&nbsp;        BalanceResponse data = balanceService.getBalance(accountId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/dashboard&quot;)
+&nbsp;    public BaseResponse&lt;AccountDashboardResponse&gt; dashboard() {
+&nbsp;
+<b class="fc">&nbsp;        var user = SecurityUtil.getCurrentUser();</b>
+&nbsp;
+<b class="fc">&nbsp;        AccountDashboardResponse data = dashboardService.getDashboard(user);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/change-password&quot;)
+&nbsp;    public BaseResponse&lt;ChangePasswordResponse&gt; changePassword(
+&nbsp;            @Valid @RequestBody ChangePasswordRequest request
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        UUID accountId = SecurityUtil.getCurrentAccountId();</b>
+&nbsp;
+<b class="fc">&nbsp;        ChangePasswordResponse data =</b>
+<b class="fc">&nbsp;                passwordService.changePassword(accountId, request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                &quot;Password changed successfully&quot;,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping
+&nbsp;    public BaseResponse&lt;Void&gt; root() {
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                null,
+&nbsp;                &quot;Invalid account API endpoint&quot;,
+&nbsp;                &quot;NOT_FOUND&quot;
+&nbsp;        );
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

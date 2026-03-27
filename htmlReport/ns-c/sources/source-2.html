@@ -1,0 +1,252 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > GlobalExceptionHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.exception</a>
+</div>
+
+<h1>Coverage Summary for Class: GlobalExceptionHandler (com.bank.account_service.exception)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GlobalExceptionHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    25%
+  </span>
+  <span class="absValue">
+    (2/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    18.8%
+  </span>
+  <span class="absValue">
+    (6/32)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">GlobalExceptionHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    22.2%
+  </span>
+  <span class="absValue">
+    (2/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    18.2%
+  </span>
+  <span class="absValue">
+    (6/33)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.exception;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.auth.response.BaseResponse;
+&nbsp;import feign.FeignException;
+&nbsp;import jakarta.servlet.RequestDispatcher;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.validation.ConstraintViolationException;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.MethodArgumentNotValidException;
+&nbsp;import org.springframework.web.bind.annotation.ExceptionHandler;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RestControllerAdvice;
+&nbsp;import org.springframework.web.servlet.NoHandlerFoundException;
+&nbsp;
+&nbsp;@RestControllerAdvice
+<b class="fc">&nbsp;public class GlobalExceptionHandler {</b>
+&nbsp;
+&nbsp;    @ExceptionHandler(BusinessException.class)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleBusiness(BusinessException ex) {
+&nbsp;
+<b class="fc">&nbsp;        HttpStatus status = ex.getStatus();</b>
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.status(status)</b>
+<b class="fc">&nbsp;                .body(new BaseResponse&lt;&gt;(</b>
+&nbsp;                        null,
+<b class="fc">&nbsp;                        ex.getMessage(),</b>
+<b class="fc">&nbsp;                        status.name()</b>
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(MethodArgumentNotValidException.class)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleValidation(MethodArgumentNotValidException ex) {
+&nbsp;
+<b class="nc">&nbsp;        String msg = ex.getBindingResult()</b>
+<b class="nc">&nbsp;                .getFieldErrors()</b>
+<b class="nc">&nbsp;                .get(0)</b>
+<b class="nc">&nbsp;                .getDefaultMessage();</b>
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.badRequest()</b>
+<b class="nc">&nbsp;                .body(new BaseResponse&lt;&gt;(null, msg, &quot;BAD_REQUEST&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(ConstraintViolationException.class)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleConstraint(ConstraintViolationException ex) {
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.badRequest()</b>
+<b class="nc">&nbsp;                .body(new BaseResponse&lt;&gt;(</b>
+&nbsp;                        null,
+<b class="nc">&nbsp;                        ex.getMessage(),</b>
+&nbsp;                        &quot;BAD_REQUEST&quot;
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(FeignException.class)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleFeign(FeignException ex) {
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)</b>
+<b class="nc">&nbsp;                .body(new BaseResponse&lt;&gt;(</b>
+&nbsp;                        null,
+&nbsp;                        &quot;Dependent service unavailable&quot;,
+&nbsp;                        &quot;SERVICE_UNAVAILABLE&quot;
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(Exception.class)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleGeneric(Exception ex) {
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</b>
+<b class="nc">&nbsp;                .body(new BaseResponse&lt;&gt;(</b>
+&nbsp;                        null,
+&nbsp;                        &quot;Internal server error&quot;,
+&nbsp;                        &quot;INTERNAL_SERVER_ERROR&quot;
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    @RequestMapping(&quot;/error&quot;)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Void&gt;&gt; handleError(HttpServletRequest request) {
+&nbsp;
+<b class="nc">&nbsp;        Object statusObj = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);</b>
+<b class="nc">&nbsp;        int statusCode = statusObj != null ? (int) statusObj : 500;</b>
+&nbsp;
+<b class="nc">&nbsp;        HttpStatus status = HttpStatus.valueOf(statusCode);</b>
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.status(status)</b>
+<b class="nc">&nbsp;                .body(new BaseResponse&lt;&gt;(</b>
+&nbsp;                        null,
+<b class="nc">&nbsp;                        resolveMessage(status),</b>
+<b class="nc">&nbsp;                        status.name()</b>
+&nbsp;                ));
+&nbsp;    }
+&nbsp;
+&nbsp;    private String resolveMessage(HttpStatus status) {
+<b class="nc">&nbsp;        return switch (status) {</b>
+<b class="nc">&nbsp;            case NOT_FOUND -&gt; &quot;URL is wrong, please correct it&quot;;</b>
+<b class="nc">&nbsp;            case METHOD_NOT_ALLOWED -&gt; &quot;HTTP method not allowed for this endpoint&quot;;</b>
+<b class="nc">&nbsp;            case UNAUTHORIZED -&gt; &quot;Authentication required&quot;;</b>
+<b class="nc">&nbsp;            case FORBIDDEN -&gt; &quot;Access denied&quot;;</b>
+<b class="nc">&nbsp;            default -&gt; &quot;Internal server error&quot;;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

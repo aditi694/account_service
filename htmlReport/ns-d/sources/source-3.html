@@ -1,0 +1,141 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.security</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtUtil (com.bank.account_service.security)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.security;
+&nbsp;
+&nbsp;import io.jsonwebtoken.*;
+&nbsp;import io.jsonwebtoken.security.Keys;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.security.Key;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@Component
+<b class="fc">&nbsp;public class JwtUtil {</b>
+&nbsp;
+&nbsp;    private static final String SECRET = &quot;BANKING_UNIFIED_SECRET_KEY_32_CHARACTERS_MINIMUM_LENGTH_2026&quot;;
+<b class="fc">&nbsp;    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());</b>
+&nbsp;
+&nbsp;    public String generate(UUID accountId, UUID customerId, String role) {
+<b class="fc">&nbsp;        String cleanRole = role.replace(&quot;ROLE_&quot;, &quot;&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        return Jwts.builder()</b>
+<b class="fc">&nbsp;                .claim(&quot;accountId&quot;, accountId.toString())</b>
+<b class="fc">&nbsp;                .claim(&quot;customerId&quot;, customerId.toString())</b>
+<b class="fc">&nbsp;                .claim(&quot;role&quot;, cleanRole.toUpperCase())</b>
+<b class="fc">&nbsp;                .setIssuedAt(new Date())</b>
+<b class="fc">&nbsp;                .setExpiration(new Date(System.currentTimeMillis() + 86400000))</b>
+<b class="fc">&nbsp;                .signWith(key, SignatureAlgorithm.HS256)</b>
+<b class="fc">&nbsp;                .compact();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Claims parse(String token) {
+<b class="fc">&nbsp;        return Jwts.parserBuilder()</b>
+<b class="fc">&nbsp;                .setSigningKey(key)</b>
+<b class="fc">&nbsp;                .build()</b>
+<b class="fc">&nbsp;                .parseClaimsJws(token)</b>
+<b class="fc">&nbsp;                .getBody();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

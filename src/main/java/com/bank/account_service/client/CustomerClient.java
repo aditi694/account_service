@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.UUID;
 
 @FeignClient(
-        name = "account-customer-client",
-        url = "${CUSTOMER_SERVICE_URL}",
+        name = "CUSTOMER-SERVICE",
+        url = "http://localhost:8081",
         path = "/api/internal/customers"
 )
 public interface CustomerClient {

@@ -1,0 +1,441 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DashboardServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: DashboardServiceImpl (com.bank.account_service.service.impl)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DashboardServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (23/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (37/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (161/161)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DashboardServiceImpl$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">DashboardServiceImpl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (24/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (37/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (166/166)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.service.impl;
+&nbsp;
+&nbsp;import static com.bank.account_service.util.AppConstants.*;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.account.response.AccountDashboardResponse;
+&nbsp;import com.bank.account_service.dto.card.response.DebitCardResponse;
+&nbsp;import com.bank.account_service.dto.client.BankBranchDto;
+&nbsp;import com.bank.account_service.dto.client.CustomerClient;
+&nbsp;import com.bank.account_service.dto.client.CustomerSnapshot;
+&nbsp;import com.bank.account_service.dto.insurance.response.InsuranceResponse;
+&nbsp;import com.bank.account_service.dto.loan.response.LoanResponse;
+&nbsp;import com.bank.account_service.entity.*;
+&nbsp;import com.bank.account_service.enums.InsuranceStatus;
+&nbsp;import com.bank.account_service.enums.LoanStatus;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.repository.*;
+&nbsp;import com.bank.account_service.security.AuthUser;
+&nbsp;import com.bank.account_service.service.CreditCardService;
+&nbsp;import com.bank.account_service.service.DashboardService;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@Transactional(readOnly = true)
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class DashboardServiceImpl implements DashboardService {
+&nbsp;
+&nbsp;    private final AccountRepository accountRepo;
+&nbsp;    private final DebitCardRepository debitRepo;
+&nbsp;    private final LoanRepository loanRepo;
+&nbsp;    private final InsuranceRepository insuranceRepo;
+&nbsp;    private final CustomerClient customerClient;
+&nbsp;    private final CreditCardService creditCardService;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public AccountDashboardResponse getDashboard(AuthUser user) {
+&nbsp;
+<b class="fc">&nbsp;        Account account = accountRepo.findById(user.getAccountId())</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        CustomerSnapshot customer = fetchCustomerSummary(user.getCustomerId());</b>
+<b class="fc">&nbsp;        BankBranchDto bankBranch = fetchBankBranch(account.getIfscCode());</b>
+&nbsp;
+<b class="fc">&nbsp;        return AccountDashboardResponse.builder()</b>
+<b class="fc">&nbsp;                .accountId(account.getId())</b>
+<b class="fc">&nbsp;                .customerId(user.getCustomerId())</b>
+<b class="fc">&nbsp;                .customerName(customer != null ? customer.getFullName() : &quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                .accountNumber(account.getAccountNumber())</b>
+<b class="fc">&nbsp;                .accountType(account.getAccountType().name())</b>
+<b class="fc">&nbsp;                .accountTypeDescription(getAccountTypeDescription(account.getAccountType()))  // ✅</b>
+<b class="fc">&nbsp;                .balance(account.getBalance())</b>
+<b class="fc">&nbsp;                .status(account.getStatus().name())</b>
+<b class="fc">&nbsp;                .statusMessage(getAccountStatusMessage(account.getStatus()))  // ✅</b>
+&nbsp;
+<b class="fc">&nbsp;                .bankBranch(buildBankBranch(bankBranch))</b>
+<b class="fc">&nbsp;                .debitCard(getDebitCardStatus(account.getAccountNumber()))</b>
+<b class="fc">&nbsp;                .creditCard(creditCardService.getCreditCardSummary(user.getCustomerId()))</b>
+&nbsp;
+<b class="fc">&nbsp;                .loans(getCustomerLoans(user.getCustomerId()))</b>
+<b class="fc">&nbsp;                .insurances(getCustomerInsurances(user.getCustomerId()))</b>
+&nbsp;
+<b class="fc">&nbsp;                .limits(buildLimits())</b>
+<b class="fc">&nbsp;                .nominee(buildNominee(customer))</b>
+<b class="fc">&nbsp;                .kyc(buildKycStatus(customer))</b>
+&nbsp;
+<b class="fc">&nbsp;                .linkedAccounts(buildLinkedAccounts(</b>
+<b class="fc">&nbsp;                        accountRepo.findByCustomerId(user.getCustomerId())</b>
+&nbsp;                ))
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private DebitCardResponse getDebitCardStatus(String accountNumber) {
+<b class="fc">&nbsp;        return debitRepo.findByAccountNumber(accountNumber)</b>
+<b class="fc">&nbsp;                .map(card -&gt; DebitCardResponse.builder()</b>
+<b class="fc">&nbsp;                        .cardNumber(maskCardNumber(card.getCardNumber()))</b>
+<b class="fc">&nbsp;                        .expiry(card.getExpiryDate() != null</b>
+<b class="fc">&nbsp;                                ? card.getExpiryDate().toString()</b>
+<b class="fc">&nbsp;                                : &quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                        .dailyLimit(card.getDailyLimit())</b>
+<b class="fc">&nbsp;                        .status(card.getStatus().name())</b>
+<b class="fc">&nbsp;                        .message(getCardStatusMessage(card.getStatus()))</b>
+<b class="fc">&nbsp;                        .build()</b>
+&nbsp;                )
+<b class="fc">&nbsp;                .orElse(DebitCardResponse.builder()</b>
+<b class="fc">&nbsp;                        .cardNumber(&quot;Not Issued&quot;)</b>
+<b class="fc">&nbsp;                        .expiry(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                        .dailyLimit(0)</b>
+<b class="fc">&nbsp;                        .status(&quot;NOT_ISSUED&quot;)</b>
+<b class="fc">&nbsp;                        .message(CARD_NOT_ISSUED_MSG)</b>
+<b class="fc">&nbsp;                        .build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private List&lt;LoanResponse&gt; getCustomerLoans(UUID customerId) {
+<b class="fc">&nbsp;        return loanRepo.findByAccount_CustomerId(customerId)</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(this::mapLoan)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private LoanResponse mapLoan(Loan loan) {
+<b class="fc">&nbsp;        LoanStatus status = loan.getStatus();</b>
+&nbsp;
+<b class="fc">&nbsp;        if (status == LoanStatus.REQUESTED || status == LoanStatus.REJECTED) {</b>
+<b class="fc">&nbsp;            return LoanResponse.builder()</b>
+<b class="fc">&nbsp;                    .loanId(loan.getLoanId())</b>
+<b class="fc">&nbsp;                    .loanType(loan.getLoanType().name())</b>
+<b class="fc">&nbsp;                    .status(status)</b>
+<b class="fc">&nbsp;                    .statusMessage(getLoanStatusMessage(status))</b>
+<b class="fc">&nbsp;                    .build();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return LoanResponse.builder()</b>
+<b class="fc">&nbsp;                .loanId(loan.getLoanId())</b>
+<b class="fc">&nbsp;                .loanType(loan.getLoanType().name())</b>
+<b class="fc">&nbsp;                .loanAmount(loan.getAmount().doubleValue())</b>
+<b class="fc">&nbsp;                .interestRate(loan.getInterestRate())</b>
+<b class="fc">&nbsp;                .tenureMonths(loan.getTenureMonths())</b>
+<b class="fc">&nbsp;                .emiAmount(loan.getEmiAmount())</b>
+<b class="fc">&nbsp;                .outstandingAmount(loan.getOutstandingAmount())</b>
+<b class="fc">&nbsp;                .status(status)</b>
+<b class="fc">&nbsp;                .statusMessage(getLoanStatusMessage(status))</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getLoanStatusMessage(LoanStatus status) {
+<b class="pc">&nbsp;        return switch (status) {</b>
+<b class="fc">&nbsp;            case ACTIVE -&gt; LOAN_ACTIVE_MSG;</b>
+<b class="fc">&nbsp;            case REQUESTED -&gt; LOAN_REQUESTED_MSG;</b>
+<b class="fc">&nbsp;            case REJECTED -&gt; LOAN_REJECTED_MSG;</b>
+<b class="fc">&nbsp;            case CLOSED -&gt; LOAN_CLOSED_MSG;</b>
+<b class="fc">&nbsp;            case DEFAULTED -&gt; LOAN_DEFAULTED_MSG;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private List&lt;InsuranceResponse&gt; getCustomerInsurances(UUID customerId) {
+<b class="fc">&nbsp;        return insuranceRepo.findByAccount_CustomerId(customerId)</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(this::mapInsurance)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private InsuranceResponse mapInsurance(Insurance ins) {
+<b class="fc">&nbsp;        return InsuranceResponse.builder()</b>
+<b class="fc">&nbsp;                .policyNumber(ins.getInsuranceId())</b>
+<b class="fc">&nbsp;                .insuranceType(ins.getInsuranceType().name())</b>
+<b class="fc">&nbsp;                .coverageAmount(ins.getCoverageAmount().doubleValue())</b>
+<b class="fc">&nbsp;                .premiumAmount(ins.getPremiumAmount())</b>
+<b class="fc">&nbsp;                .startDate(ins.getStartDate())</b>
+<b class="fc">&nbsp;                .endDate(ins.getEndDate())</b>
+<b class="fc">&nbsp;                .status(ins.getStatus())</b>
+<b class="fc">&nbsp;                .statusMessage(getInsuranceStatusMessage(ins.getStatus()))</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getInsuranceStatusMessage(InsuranceStatus status) {
+<b class="pc">&nbsp;        return switch (status) {</b>
+<b class="fc">&nbsp;            case ACTIVE -&gt; INSURANCE_ACTIVE_MSG;</b>
+<b class="fc">&nbsp;            case REQUESTED -&gt; INSURANCE_REQUESTED_MSG;</b>
+<b class="fc">&nbsp;            case REJECTED -&gt; INSURANCE_REJECTED_MSG;</b>
+<b class="fc">&nbsp;            case CANCELLED -&gt; INSURANCE_CANCELLED_MSG;</b>
+<b class="fc">&nbsp;            case EXPIRED -&gt; INSURANCE_EXPIRED_MSG;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getAccountStatusMessage(com.bank.account_service.enums.AccountStatus status) {
+<b class="pc">&nbsp;        return switch (status) {</b>
+<b class="fc">&nbsp;            case ACTIVE -&gt; ACCOUNT_ACTIVE_MSG;</b>
+<b class="fc">&nbsp;            case DORMANT -&gt; ACCOUNT_DORMANT_MSG;</b>
+<b class="fc">&nbsp;            case BLOCKED -&gt; ACCOUNT_BLOCKED_MSG;</b>
+<b class="fc">&nbsp;            case CLOSED -&gt; ACCOUNT_CLOSED_MSG;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getAccountTypeDescription(com.bank.account_service.enums.AccountType type) {
+<b class="pc">&nbsp;        return switch (type) {</b>
+<b class="fc">&nbsp;            case SAVINGS -&gt; ACC_TYPE_SAVINGS_DESC;</b>
+<b class="fc">&nbsp;            case CURRENT -&gt; ACC_TYPE_CURRENT_DESC;</b>
+<b class="fc">&nbsp;            case FIXED_DEPOSIT -&gt; ACC_TYPE_FD_DESC;</b>
+<b class="fc">&nbsp;            case RECURRING_DEPOSIT -&gt; ACC_TYPE_RD_DESC;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getCardStatusMessage(com.bank.account_service.enums.CardStatus status) {
+<b class="fc">&nbsp;        return switch (status) {</b>
+<b class="fc">&nbsp;            case ACTIVE -&gt; CARD_ACTIVE_MSG;</b>
+<b class="fc">&nbsp;            case BLOCKED -&gt; CARD_BLOCKED_MSG;</b>
+<b class="fc">&nbsp;            case EXPIRED -&gt; CARD_EXPIRED_MSG;</b>
+<b class="fc">&nbsp;            default -&gt; CARD_NOT_ISSUED_MSG;</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    private CustomerSnapshot fetchCustomerSummary(UUID customerId) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return customerClient.getCustomer(customerId);</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            log.warn(&quot;Failed to fetch customer summary&quot;, e);</b>
+<b class="fc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private AccountDashboardResponse.Limits buildLimits() {
+<b class="fc">&nbsp;        return AccountDashboardResponse.Limits.builder()</b>
+<b class="fc">&nbsp;                .dailyTransactionLimit(100_000)</b>
+<b class="fc">&nbsp;                .perTransactionLimit(50_000)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AccountDashboardResponse.Nominee buildNominee(CustomerSnapshot customer) {
+<b class="fc">&nbsp;        if (customer != null &amp;&amp; customer.getNomineeName() != null) {</b>
+<b class="fc">&nbsp;            return AccountDashboardResponse.Nominee.builder()</b>
+<b class="fc">&nbsp;                    .name(customer.getNomineeName())</b>
+<b class="fc">&nbsp;                    .relation(customer.getNomineeRelation())</b>
+<b class="fc">&nbsp;                    .build();</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return AccountDashboardResponse.Nominee.builder()</b>
+<b class="fc">&nbsp;                .name(&quot;Not Set&quot;)</b>
+<b class="fc">&nbsp;                .relation(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AccountDashboardResponse.KycStatus buildKycStatus(CustomerSnapshot customer) {
+<b class="fc">&nbsp;        if (customer != null) {</b>
+<b class="fc">&nbsp;            boolean verified = &quot;APPROVED&quot;.equals(customer.getKycStatus());</b>
+<b class="fc">&nbsp;            return AccountDashboardResponse.KycStatus.builder()</b>
+<b class="fc">&nbsp;                    .verified(verified)</b>
+<b class="fc">&nbsp;                    .status(customer.getKycStatus())</b>
+<b class="fc">&nbsp;                    .build();</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return AccountDashboardResponse.KycStatus.builder()</b>
+<b class="fc">&nbsp;                .verified(false)</b>
+<b class="fc">&nbsp;                .status(&quot;PENDING&quot;)</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;AccountDashboardResponse.LinkedAccount&gt; buildLinkedAccounts(List&lt;Account&gt; accounts) {
+<b class="fc">&nbsp;        return accounts.stream()</b>
+<b class="fc">&nbsp;                .map(acc -&gt; AccountDashboardResponse.LinkedAccount.builder()</b>
+<b class="fc">&nbsp;                        .accountNumber(acc.getAccountNumber())</b>
+<b class="fc">&nbsp;                        .accountType(acc.getAccountType().name())</b>
+<b class="fc">&nbsp;                        .balance(acc.getBalance().doubleValue())</b>
+<b class="fc">&nbsp;                        .primary(acc.isPrimaryAccount())</b>
+<b class="fc">&nbsp;                        .build())</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private AccountDashboardResponse.BankBranchDetails buildBankBranch(BankBranchDto dto) {
+<b class="fc">&nbsp;        if (dto == null) {</b>
+<b class="fc">&nbsp;            return AccountDashboardResponse.BankBranchDetails.builder()</b>
+<b class="fc">&nbsp;                    .ifscCode(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                    .bankName(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                    .branchName(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                    .city(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                    .address(&quot;N/A&quot;)</b>
+<b class="fc">&nbsp;                    .build();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return AccountDashboardResponse.BankBranchDetails.builder()</b>
+<b class="fc">&nbsp;                .ifscCode(dto.getIfscCode())</b>
+<b class="fc">&nbsp;                .bankName(dto.getBankName())</b>
+<b class="fc">&nbsp;                .branchName(dto.getBranchName())</b>
+<b class="fc">&nbsp;                .city(dto.getCity())</b>
+<b class="fc">&nbsp;                .address(dto.getAddress())</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private BankBranchDto fetchBankBranch(String ifscCode) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return customerClient.getBankBranch(ifscCode);</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            log.warn(&quot;Failed to fetch bank branch for IFSC {}&quot;, ifscCode, e);</b>
+<b class="fc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private String maskCardNumber(String cardNumber) {
+<b class="fc">&nbsp;        return &quot;****-****-****-&quot; + cardNumber.substring(cardNumber.length() - 4);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

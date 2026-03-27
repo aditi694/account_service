@@ -1,0 +1,194 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AppConstants</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.util</a>
+</div>
+
+<h1>Coverage Summary for Class: AppConstants (com.bank.account_service.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AppConstants</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.util;
+&nbsp;
+&nbsp;public final class AppConstants {
+&nbsp;
+&nbsp;
+&nbsp;    private AppConstants() {
+&nbsp;    }
+&nbsp;
+&nbsp;    // ============ ACCOUNT STATUS MESSAGES ============
+&nbsp;    public static final String ACCOUNT_ACTIVE_MSG =
+&nbsp;            &quot;Your account is active&quot;;
+&nbsp;
+&nbsp;    public static final String ACCOUNT_DORMANT_MSG =
+&nbsp;            &quot;Account is dormant due to inactivity. Please contact support to reactivate&quot;;
+&nbsp;
+&nbsp;    public static final String ACCOUNT_BLOCKED_MSG =
+&nbsp;            &quot;Account has been blocked. Please contact customer support&quot;;
+&nbsp;
+&nbsp;    public static final String ACCOUNT_CLOSED_MSG =
+&nbsp;            &quot;This account has been permanently closed&quot;;
+&nbsp;
+&nbsp;    // ============ ACCOUNT TYPE MESSAGES ============
+&nbsp;    public static final String ACC_TYPE_SAVINGS_DESC =
+&nbsp;            &quot;Regular savings account with interest benefits&quot;;
+&nbsp;
+&nbsp;    public static final String ACC_TYPE_CURRENT_DESC =
+&nbsp;            &quot;Business current account with unlimited transactions&quot;;
+&nbsp;
+&nbsp;    public static final String ACC_TYPE_FD_DESC =
+&nbsp;            &quot;Fixed deposit with guaranteed returns&quot;;
+&nbsp;
+&nbsp;    public static final String ACC_TYPE_RD_DESC =
+&nbsp;            &quot;Recurring deposit for systematic savings&quot;;
+&nbsp;
+&nbsp;    // ============ CARD STATUS MESSAGES ============
+&nbsp;    public static final String CARD_ACTIVE_MSG =
+&nbsp;            &quot;Your card is active and ready to use&quot;;
+&nbsp;
+&nbsp;    public static final String CARD_BLOCKED_MSG =
+&nbsp;            &quot;Card has been blocked for security reasons&quot;;
+&nbsp;
+&nbsp;    public static final String CARD_EXPIRED_MSG =
+&nbsp;            &quot;Card has expired. Please request a new card&quot;;
+&nbsp;
+&nbsp;    public static final String CARD_NOT_ISSUED_MSG =
+&nbsp;            &quot;Contact support to issue a new card&quot;;
+&nbsp;
+&nbsp;    // ============ LOAN STATUS MESSAGES ============
+&nbsp;    public static final String LOAN_ACTIVE_MSG =
+&nbsp;            &quot;Your loan is active. Next EMI due on&quot;;
+&nbsp;
+&nbsp;    public static final String LOAN_REQUESTED_MSG =
+&nbsp;            &quot;Loan application under review. You&#39;ll be notified within 2-3 business days&quot;;
+&nbsp;
+&nbsp;    public static final String LOAN_REJECTED_MSG =
+&nbsp;            &quot;Loan application rejected. Please contact support for details&quot;;
+&nbsp;
+&nbsp;    public static final String LOAN_CLOSED_MSG =
+&nbsp;            &quot;Congratulations! Your loan has been fully repaid&quot;;
+&nbsp;
+&nbsp;    public static final String LOAN_DEFAULTED_MSG =
+&nbsp;            &quot;Please contact support immediately regarding your loan&quot;;
+&nbsp;
+&nbsp;    // ============ INSURANCE STATUS MESSAGES ============
+&nbsp;    public static final String INSURANCE_ACTIVE_MSG =
+&nbsp;            &quot;Your insurance policy is active and providing coverage&quot;;
+&nbsp;
+&nbsp;    public static final String INSURANCE_REQUESTED_MSG =
+&nbsp;            &quot;Insurance request under review&quot;;
+&nbsp;
+&nbsp;    public static final String INSURANCE_REJECTED_MSG =
+&nbsp;            &quot;Insurance request rejected&quot;;
+&nbsp;
+&nbsp;    public static final String INSURANCE_CANCELLED_MSG =
+&nbsp;            &quot;Insurance policy has been cancelled&quot;;
+&nbsp;
+&nbsp;    public static final String INSURANCE_EXPIRED_MSG =
+&nbsp;            &quot;Insurance policy has expired. Please renew to continue coverage&quot;;
+&nbsp;
+&nbsp;    // ============ CREDIT CARD STATUS MESSAGES ============
+&nbsp;    public static final String STATUS_APPROVED = &quot;APPROVED&quot;;
+&nbsp;    public static final String STATUS_PENDING = &quot;PENDING&quot;;
+&nbsp;    public static final String STATUS_REJECTED = &quot;REJECTED&quot;;
+&nbsp;
+&nbsp;    public static final String TITLE_APPROVED = &quot;Congratulations 🎉&quot;;
+&nbsp;    public static final String MSG_APPROVED =
+&nbsp;            &quot;Your credit card has been approved instantly&quot;;
+&nbsp;
+&nbsp;    public static final String DESC_APPROVED =
+&nbsp;            &quot;Based on your transaction history, your credit card is approved automatically&quot;;
+&nbsp;
+&nbsp;    public static final String NEXT_APPROVED =
+&nbsp;            &quot;Check your dashboard to view card details and available limit&quot;;
+&nbsp;
+&nbsp;    public static final String TITLE_PENDING = &quot;Application Submitted&quot;;
+&nbsp;    public static final String MSG_PENDING =
+&nbsp;            &quot;Your credit card application is under review&quot;;
+&nbsp;
+&nbsp;    public static final String DESC_PENDING =
+&nbsp;            &quot;Our team is reviewing your application. Approval usually takes 2–3 business days&quot;;
+&nbsp;
+&nbsp;    public static final String NEXT_PENDING =
+&nbsp;            &quot;You will receive SMS and Email updates&quot;;
+&nbsp;    public static final String COUNT = &quot;count&quot;;
+&nbsp;    public static final String REQUEST_ID = &quot;requestId&quot;;
+&nbsp;    public static final String REQUESTS = &quot;requests&quot;;
+&nbsp;
+&nbsp;
+&nbsp;    // ============ COMMON KEYS ============
+&nbsp;    public static final String SUCCESS = &quot;success&quot;;
+&nbsp;    public static final String STATUS = &quot;status&quot;;
+&nbsp;    public static final String TITLE = &quot;title&quot;;
+&nbsp;    public static final String MESSAGE = &quot;message&quot;;
+&nbsp;    public static final String DESCRIPTION = &quot;description&quot;;
+&nbsp;    public static final String NEXT_STEPS = &quot;nextSteps&quot;;
+&nbsp;
+&nbsp;    public static final String SUCCESS_CODE = &quot;00&quot;;
+&nbsp;    public static final String SUCCESS_MSG = &quot;Operation successful&quot;;
+&nbsp;
+&nbsp;    public static final String FORBIDDEN_MSG = &quot;Access forbidden&quot;;
+&nbsp;
+&nbsp;    public static final String CONFLICT_MSG = &quot;Conflict occurred&quot;;
+&nbsp;
+&nbsp;    public static final String CREDIT_CARD_APPROVED = &quot;Credit card approved successfully&quot;;
+&nbsp;    public static final String LOAN_APPROVED = &quot;Loan approved successfully&quot;;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

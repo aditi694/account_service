@@ -1,0 +1,175 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AccountValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.validation</a>
+</div>
+
+<h1>Coverage Summary for Class: AccountValidator (com.bank.account_service.validation)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AccountValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.validation;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.auth.LoginRequest;
+&nbsp;import com.bank.account_service.entity.Account;
+&nbsp;import com.bank.account_service.enums.AccountStatus;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp; import org.slf4j.Logger;
+&nbsp; import org.slf4j.LoggerFactory;
+&nbsp;
+&nbsp;public final class AccountValidator {
+&nbsp;
+<b class="fc">&nbsp;     private static final Logger log =</b>
+<b class="fc">&nbsp;             LoggerFactory.getLogger(AccountValidator.class);</b>
+&nbsp;
+&nbsp;    private AccountValidator() {}
+&nbsp;
+&nbsp;    public static void validateLoginRequest(LoginRequest request) {
+&nbsp;
+&nbsp;        // log.info(&quot;Login validation started&quot;);
+&nbsp;
+<b class="fc">&nbsp;        if (request == null) {</b>
+&nbsp;            // log.warn(&quot;Login failed: request is null&quot;);
+<b class="fc">&nbsp;            throw BusinessException.badRequest(&quot;Login request is required&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (request.getAccountNumber() == null ||</b>
+<b class="fc">&nbsp;                request.getAccountNumber().isBlank()) {</b>
+&nbsp;            // log.warn(&quot;Login failed: account number missing&quot;);
+<b class="fc">&nbsp;            throw BusinessException.badRequest(&quot;Account number is required&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (request.getPassword() == null ||</b>
+<b class="fc">&nbsp;                request.getPassword().isBlank()) {</b>
+&nbsp;            // log.warn(&quot;Login failed: password missing&quot;);
+<b class="fc">&nbsp;            throw BusinessException.badRequest(&quot;Password is required&quot;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // log.info(&quot;Login request validation passed&quot;);
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void validateAccountStatus(Account account) {
+&nbsp;
+&nbsp;        // log.info(&quot;Validating account status for accountId={}&quot;,
+&nbsp;        //         account.getId());
+&nbsp;
+<b class="fc">&nbsp;        if (account.getStatus() == AccountStatus.BLOCKED) {</b>
+&nbsp;            // log.warn(&quot;Account blocked: {}&quot;, account.getId());
+<b class="fc">&nbsp;            throw BusinessException.accountBlocked();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (account.getStatus() == AccountStatus.CLOSED) {</b>
+&nbsp;            // log.warn(&quot;Account closed: {}&quot;, account.getId());
+<b class="fc">&nbsp;            throw BusinessException.accountClosed();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // log.info(&quot;Account status validation passed&quot;);
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

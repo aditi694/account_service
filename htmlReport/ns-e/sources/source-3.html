@@ -1,0 +1,186 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CardServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: CardServiceImpl (com.bank.account_service.service.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CardServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (33/33)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.service.impl;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.card.response.DebitCardResponse;
+&nbsp;import com.bank.account_service.entity.Account;
+&nbsp;import com.bank.account_service.entity.DebitCard;
+&nbsp;import com.bank.account_service.enums.CardStatus;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.repository.AccountRepository;
+&nbsp;import com.bank.account_service.repository.DebitCardRepository;
+&nbsp;import com.bank.account_service.service.CardService;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.UUID;
+&nbsp;@Service
+&nbsp;public class CardServiceImpl implements CardService {
+&nbsp;
+&nbsp;    private final DebitCardRepository debitRepo;
+&nbsp;    private final AccountRepository accountRepo;
+&nbsp;
+&nbsp;    public CardServiceImpl(
+&nbsp;            DebitCardRepository debitRepo,
+&nbsp;            AccountRepository accountRepo
+<b class="fc">&nbsp;    ) {</b>
+<b class="fc">&nbsp;        this.debitRepo = debitRepo;</b>
+<b class="fc">&nbsp;        this.accountRepo = accountRepo;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public DebitCardResponse getDebitCard(UUID accountId) {
+&nbsp;
+<b class="fc">&nbsp;        Account acc = accountRepo.findById(accountId)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        DebitCard card = debitRepo.findByAccountNumber(acc.getAccountNumber())</b>
+<b class="fc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="fc">&nbsp;                    DebitCard newCard = DebitCard.builder()</b>
+<b class="fc">&nbsp;                            .accountNumber(acc.getAccountNumber())</b>
+<b class="fc">&nbsp;                            .cardNumber(&quot;5123&quot; + System.currentTimeMillis())</b>
+<b class="fc">&nbsp;                            .expiryDate(LocalDate.now().plusYears(5))</b>
+<b class="fc">&nbsp;                            .dailyLimit(50000)</b>
+<b class="fc">&nbsp;                            .usedToday(0)</b>
+<b class="fc">&nbsp;                            .status(CardStatus.ACTIVE)</b>
+<b class="fc">&nbsp;                            .issuedDate(LocalDate.now())</b>
+<b class="fc">&nbsp;                            .build();</b>
+&nbsp;
+<b class="fc">&nbsp;                    debitRepo.save(newCard);</b>
+<b class="fc">&nbsp;                    return newCard;</b>
+&nbsp;                });
+&nbsp;
+<b class="fc">&nbsp;        return map(card);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void blockDebitCard(UUID accountId) {
+<b class="fc">&nbsp;        DebitCard card = getCard(accountId);</b>
+<b class="fc">&nbsp;        card.setStatus(CardStatus.BLOCKED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void unblockDebitCard(UUID accountId) {
+<b class="fc">&nbsp;        DebitCard card = getCard(accountId);</b>
+<b class="fc">&nbsp;        card.setStatus(CardStatus.ACTIVE);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private DebitCard getCard(UUID accountId) {
+<b class="fc">&nbsp;        Account acc = accountRepo.findById(accountId)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        return debitRepo.findByAccountNumber(acc.getAccountNumber())</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; BusinessException.badRequest(&quot;Debit card not issued&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private DebitCardResponse map(DebitCard c) {
+<b class="fc">&nbsp;        return DebitCardResponse.builder()</b>
+<b class="fc">&nbsp;                .cardNumber(&quot;XXXX-XXXX-XXXX-&quot; + c.getCardNumber().substring(c.getCardNumber().length() - 4))</b>
+<b class="fc">&nbsp;                .expiry(c.getExpiryDate().toString())</b>
+<b class="fc">&nbsp;                .dailyLimit(c.getDailyLimit())</b>
+<b class="fc">&nbsp;                .status(c.getStatus().name())</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,197 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AccountServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: AccountServiceImpl (com.bank.account_service.service.impl)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AccountServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (19/19)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AccountServiceImpl$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (19/19)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.service.impl;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.auth.LoginRequest;
+&nbsp;import com.bank.account_service.dto.auth.response.LoginResponse;
+&nbsp;import com.bank.account_service.entity.Account;
+&nbsp;import com.bank.account_service.enums.AccountStatus;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.repository.AccountRepository;
+&nbsp;import com.bank.account_service.security.JwtUtil;
+&nbsp;import com.bank.account_service.service.AccountService;
+&nbsp;import com.bank.account_service.validation.AccountValidator;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.security.crypto.password.PasswordEncoder;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@Transactional
+&nbsp;public class AccountServiceImpl implements AccountService {
+&nbsp;
+&nbsp;    private final AccountRepository accountRepo;
+&nbsp;    private final PasswordEncoder passwordEncoder;
+&nbsp;    private final JwtUtil jwtUtil;
+&nbsp;    public AccountServiceImpl(
+&nbsp;            AccountRepository accountRepo,
+&nbsp;            PasswordEncoder passwordEncoder,
+&nbsp;            JwtUtil jwtUtil
+<b class="fc">&nbsp;    ) {</b>
+<b class="fc">&nbsp;        this.accountRepo = accountRepo;</b>
+<b class="fc">&nbsp;        this.passwordEncoder = passwordEncoder;</b>
+<b class="fc">&nbsp;        this.jwtUtil = jwtUtil;</b>
+&nbsp;    }
+&nbsp;    @Override
+&nbsp;    public LoginResponse login(LoginRequest request) {
+&nbsp;
+<b class="fc">&nbsp;        AccountValidator.validateLoginRequest(request);</b>
+&nbsp;
+<b class="fc">&nbsp;        Account account = accountRepo.findByAccountNumber(request.getAccountNumber())</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::invalidCredentials);</b>
+&nbsp;
+<b class="fc">&nbsp;        AccountValidator.validateAccountStatus(account);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (!passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {</b>
+<b class="fc">&nbsp;            throw BusinessException.invalidCredentials();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        String token = jwtUtil.generate(</b>
+<b class="fc">&nbsp;                account.getId(),</b>
+<b class="fc">&nbsp;                account.getCustomerId(),</b>
+&nbsp;                &quot;CUSTOMER&quot;
+&nbsp;        );
+&nbsp;
+<b class="fc">&nbsp;        return LoginResponse.builder()</b>
+<b class="fc">&nbsp;                .success(true)</b>
+<b class="fc">&nbsp;                .token(token)</b>
+<b class="fc">&nbsp;                .requiresPasswordChange(account.isRequiresPasswordChange())</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

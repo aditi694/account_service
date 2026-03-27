@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.UUID;
 
 @FeignClient(
-        name = "account-transaction-client",
-        url = "${TRANSACTION_SERVICE_URL}",
+        name = "TRANSACTION-SERVICE",
         path = "/api/internal/transactions"
 )
 public interface TransactionClient {

@@ -1,0 +1,188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DebitCardController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: DebitCardController (com.bank.account_service.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DebitCardController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (12/12)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.controller;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.card.response.DebitCardResponse;
+&nbsp;import com.bank.account_service.dto.auth.response.BaseResponse;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.security.SecurityUtil;
+&nbsp;import com.bank.account_service.service.CardService;
+&nbsp;import com.bank.account_service.util.AppConstants;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class DebitCardController {
+&nbsp;
+&nbsp;    private final CardService service;
+&nbsp;
+&nbsp;    @GetMapping(&quot;/account/cards/debit&quot;)
+&nbsp;    public BaseResponse&lt;DebitCardResponse&gt; myDebitCard() {
+&nbsp;
+<b class="fc">&nbsp;        UUID accountId = SecurityUtil.getCurrentAccountId();</b>
+&nbsp;
+<b class="fc">&nbsp;        DebitCardResponse data = service.getDebitCard(accountId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/admin/cards/debit/{accountId}/block&quot;)
+&nbsp;    public BaseResponse&lt;Void&gt; block(
+&nbsp;            @PathVariable UUID accountId
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        ensureAdmin();</b>
+&nbsp;
+<b class="fc">&nbsp;        service.blockDebitCard(accountId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                null,
+&nbsp;                &quot;Debit card blocked&quot;,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/admin/cards/debit/{accountId}/unblock&quot;)
+&nbsp;    public BaseResponse&lt;Void&gt; unblock(
+&nbsp;            @PathVariable UUID accountId
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        ensureAdmin();</b>
+&nbsp;
+<b class="fc">&nbsp;        service.unblockDebitCard(accountId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                null,
+&nbsp;                &quot;Debit card unblocked&quot;,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private void ensureAdmin() {
+<b class="fc">&nbsp;        if (!SecurityUtil.getCurrentUser().isAdmin()) {</b>
+<b class="fc">&nbsp;            throw BusinessException.forbidden(&quot;Admin access required&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

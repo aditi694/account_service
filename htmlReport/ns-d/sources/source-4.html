@@ -1,0 +1,166 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SecurityUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.security</a>
+</div>
+
+<h1>Coverage Summary for Class: SecurityUtil (com.bank.account_service.security)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SecurityUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (12/12)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.security;
+&nbsp;
+&nbsp;import org.springframework.security.authentication.AnonymousAuthenticationToken;
+&nbsp;import org.springframework.security.core.Authentication;
+&nbsp;import org.springframework.security.core.context.SecurityContextHolder;
+&nbsp;import org.springframework.security.authentication.InsufficientAuthenticationException;
+&nbsp;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;public final class SecurityUtil {
+&nbsp;
+&nbsp;    private SecurityUtil() {
+&nbsp;    }
+&nbsp;
+&nbsp;    public static AuthUser getCurrentUser() {
+&nbsp;
+&nbsp;        Authentication authentication =
+<b class="fc">&nbsp;                SecurityContextHolder.getContext().getAuthentication();</b>
+&nbsp;
+<b class="fc">&nbsp;        if (authentication == null</b>
+<b class="fc">&nbsp;                || !authentication.isAuthenticated()</b>
+&nbsp;                || authentication instanceof AnonymousAuthenticationToken) {
+&nbsp;
+<b class="fc">&nbsp;            throw new InsufficientAuthenticationException(&quot;User not authenticated&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Object principal = authentication.getPrincipal();</b>
+&nbsp;
+<b class="fc">&nbsp;        if (!(principal instanceof AuthUser authUser)) {</b>
+<b class="fc">&nbsp;            throw new InsufficientAuthenticationException(&quot;Invalid authentication principal&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return authUser;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static UUID getCurrentAccountId() {
+<b class="fc">&nbsp;        return getCurrentUser().getAccountId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static UUID getCurrentCustomerId() {
+<b class="fc">&nbsp;        return getCurrentUser().getCustomerId();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String getCurrentRole() {
+<b class="fc">&nbsp;        return getCurrentUser().getRole();</b>
+&nbsp;    }
+&nbsp;    public static boolean hasRole(String role) {
+<b class="fc">&nbsp;        return getCurrentRole().equals(role);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

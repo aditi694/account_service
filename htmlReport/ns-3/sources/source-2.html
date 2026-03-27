@@ -1,0 +1,244 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CreditCardController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: CreditCardController (com.bank.account_service.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CreditCardController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (41/41)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.controller;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.auth.response.BaseResponse;
+&nbsp;import com.bank.account_service.dto.card.*;
+&nbsp;import com.bank.account_service.entity.CreditCardRequest;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.security.SecurityUtil;
+&nbsp;import com.bank.account_service.service.CreditCardService;
+&nbsp;import com.bank.account_service.util.AppConstants;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.*;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class CreditCardController {
+&nbsp;
+&nbsp;    private final CreditCardService service;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/account/credit-cards/apply&quot;)
+&nbsp;    public ResponseEntity&lt;BaseResponse&lt;Map&lt;String, Object&gt;&gt;&gt; apply(
+&nbsp;            @Valid @RequestBody CreditCardApplyRequest request
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        var user = SecurityUtil.getCurrentUser();</b>
+&nbsp;
+<b class="fc">&nbsp;        UUID requestId =</b>
+<b class="fc">&nbsp;                service.applyCreditCard(user, request.getCardHolderName());</b>
+&nbsp;
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        data.put(AppConstants.SUCCESS, true);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (requestId == null) {</b>
+<b class="fc">&nbsp;            data.put(AppConstants.STATUS, AppConstants.STATUS_APPROVED);</b>
+<b class="fc">&nbsp;            data.put(AppConstants.TITLE, AppConstants.TITLE_APPROVED);</b>
+<b class="fc">&nbsp;            data.put(AppConstants.MESSAGE, AppConstants.MSG_APPROVED);</b>
+<b class="fc">&nbsp;            data.put(AppConstants.DESCRIPTION, AppConstants.DESC_APPROVED);</b>
+<b class="fc">&nbsp;            data.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_APPROVED);</b>
+&nbsp;
+<b class="fc">&nbsp;            return ResponseEntity.ok(</b>
+&nbsp;                    new BaseResponse&lt;&gt;(data,
+&nbsp;                            AppConstants.SUCCESS_MSG,
+&nbsp;                            AppConstants.SUCCESS_CODE)
+&nbsp;            );
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        data.put(AppConstants.STATUS, AppConstants.STATUS_PENDING);</b>
+<b class="fc">&nbsp;        data.put(AppConstants.REQUEST_ID, requestId.toString());</b>
+<b class="fc">&nbsp;        data.put(AppConstants.TITLE, AppConstants.TITLE_PENDING);</b>
+<b class="fc">&nbsp;        data.put(AppConstants.MESSAGE, AppConstants.MSG_PENDING);</b>
+<b class="fc">&nbsp;        data.put(AppConstants.DESCRIPTION, AppConstants.DESC_PENDING);</b>
+<b class="fc">&nbsp;        data.put(AppConstants.NEXT_STEPS, AppConstants.NEXT_PENDING);</b>
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.status(HttpStatus.ACCEPTED)</b>
+<b class="fc">&nbsp;                .body(new BaseResponse&lt;&gt;(data,</b>
+&nbsp;                        AppConstants.SUCCESS_MSG,
+&nbsp;                        AppConstants.SUCCESS_CODE));
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/account/credit-cards/status&quot;)
+&nbsp;    public BaseResponse&lt;CreditCardResponse&gt; getStatus() {
+&nbsp;
+<b class="fc">&nbsp;        UUID customerId = SecurityUtil.getCurrentCustomerId();</b>
+&nbsp;
+<b class="fc">&nbsp;        CreditCardResponse data =</b>
+<b class="fc">&nbsp;                service.getCreditCardSummary(customerId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(data,</b>
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE);
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/admin/credit-cards/pending&quot;)
+&nbsp;    public BaseResponse&lt;Map&lt;String, Object&gt;&gt; pending() {
+&nbsp;
+<b class="fc">&nbsp;        ensureAdmin();</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;CreditCardRequest&gt; pending = service.getPendingRequests();</b>
+&nbsp;
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        data.put(AppConstants.SUCCESS, true);</b>
+<b class="fc">&nbsp;        data.put(AppConstants.COUNT, pending.size());</b>
+<b class="fc">&nbsp;        data.put(AppConstants.REQUESTS, pending);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(data,</b>
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE);
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/admin/credit-cards/approve/{requestId}&quot;)
+&nbsp;    public BaseResponse&lt;CreditCardIssueResponse&gt; approve(
+&nbsp;            @PathVariable UUID requestId
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        ensureAdmin();</b>
+&nbsp;
+<b class="fc">&nbsp;        CreditCardIssueResponse data =</b>
+<b class="fc">&nbsp;                service.approveRequest(requestId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(data,</b>
+&nbsp;                AppConstants.CREDIT_CARD_APPROVED,
+&nbsp;                AppConstants.SUCCESS_CODE);
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/admin/credit-cards/reject/{requestId}&quot;)
+&nbsp;    public BaseResponse&lt;Void&gt; reject(
+&nbsp;            @PathVariable UUID requestId,
+&nbsp;            @RequestParam String reason
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        ensureAdmin();</b>
+<b class="fc">&nbsp;        service.rejectRequest(requestId, reason);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(null,</b>
+&nbsp;                AppConstants.CONFLICT_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void ensureAdmin() {
+<b class="fc">&nbsp;        if (!SecurityUtil.getCurrentUser().isAdmin()) {</b>
+<b class="fc">&nbsp;            throw BusinessException.forbidden(AppConstants.FORBIDDEN_MSG);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

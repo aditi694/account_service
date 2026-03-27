@@ -1,0 +1,157 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > InsuranceController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: InsuranceController (com.bank.account_service.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InsuranceController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.controller;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.insurance.*;
+&nbsp;import com.bank.account_service.dto.auth.response.BaseResponse;
+&nbsp;import com.bank.account_service.security.SecurityUtil;
+&nbsp;import com.bank.account_service.service.InsuranceService;
+&nbsp;import com.bank.account_service.util.AppConstants;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.UUID;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api&quot;)
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class InsuranceController {
+&nbsp;
+&nbsp;    private final InsuranceService service;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/account/insurance/request&quot;)
+&nbsp;    public BaseResponse&lt;InsuranceRequestResponse&gt; request(
+&nbsp;            @Valid @RequestBody IssueInsuranceRequest request
+&nbsp;    ) {
+&nbsp;
+<b class="fc">&nbsp;        UUID accountId = SecurityUtil.getCurrentAccountId();</b>
+&nbsp;
+<b class="fc">&nbsp;        InsuranceRequestResponse data =</b>
+<b class="fc">&nbsp;                service.requestInsurance(accountId, request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                &quot;Insurance processed&quot;,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/account/insurance&quot;)
+&nbsp;    public BaseResponse&lt;List&lt;InsuranceResponse&gt;&gt; myInsurance() {
+&nbsp;
+<b class="fc">&nbsp;        UUID customerId = SecurityUtil.getCurrentCustomerId();</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;InsuranceResponse&gt; data =</b>
+<b class="fc">&nbsp;                service.getInsurances(customerId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new BaseResponse&lt;&gt;(</b>
+&nbsp;                data,
+&nbsp;                AppConstants.SUCCESS_MSG,
+&nbsp;                AppConstants.SUCCESS_CODE
+&nbsp;        );
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>

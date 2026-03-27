@@ -1,0 +1,305 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > InternalAccountServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.bank.account_service.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: InternalAccountServiceImpl (com.bank.account_service.service.impl)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InternalAccountServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (71/71)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">InternalAccountServiceImpl$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (71/71)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.bank.account_service.service.impl;
+&nbsp;
+&nbsp;import com.bank.account_service.dto.account.request.AccountSyncRequest;
+&nbsp;import com.bank.account_service.dto.account.request.BalanceUpdateRequest;
+&nbsp;import com.bank.account_service.entity.Account;
+&nbsp;import com.bank.account_service.entity.DebitCard;
+&nbsp;import com.bank.account_service.enums.AccountStatus;
+&nbsp;import com.bank.account_service.enums.AccountType;
+&nbsp;import com.bank.account_service.enums.CardStatus;
+&nbsp;import com.bank.account_service.exception.BusinessException;
+&nbsp;import com.bank.account_service.repository.AccountRepository;
+&nbsp;import com.bank.account_service.repository.DebitCardRepository;
+&nbsp;import com.bank.account_service.service.InternalAccountService;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.UUID;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@Transactional
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class InternalAccountServiceImpl implements InternalAccountService {
+&nbsp;
+&nbsp;    private final AccountRepository accountRepo;
+&nbsp;    private final DebitCardRepository debitCardRepo;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void createAccount(AccountSyncRequest request) {
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;=== CREATING ACCOUNT IN ACCOUNT SERVICE ===&quot;);</b>
+<b class="fc">&nbsp;        log.info(&quot;Account Number: {}&quot;, request.getAccountNumber());</b>
+<b class="fc">&nbsp;        log.info(&quot;Customer ID: {}&quot;, request.getCustomerId());</b>
+&nbsp;
+<b class="fc">&nbsp;        if (accountRepo.findByAccountNumber(request.getAccountNumber()).isPresent()) {</b>
+<b class="fc">&nbsp;            log.warn(&quot;Account already exists, skipping creation&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Account account = Account.builder()</b>
+<b class="fc">&nbsp;                .accountNumber(request.getAccountNumber())</b>
+<b class="fc">&nbsp;                .customerId(UUID.fromString(request.getCustomerId()))</b>
+<b class="fc">&nbsp;                .accountType(AccountType.valueOf(request.getAccountType().toUpperCase()))</b>
+<b class="fc">&nbsp;                .balance(BigDecimal.valueOf(request.getBalance()))</b>
+<b class="fc">&nbsp;                .primaryAccount(request.isPrimaryAccount())</b>
+<b class="fc">&nbsp;                .status(AccountStatus.valueOf(request.getStatus().toUpperCase()))</b>
+<b class="fc">&nbsp;                .passwordHash(request.getPasswordHash())</b>
+<b class="fc">&nbsp;                .requiresPasswordChange(false)</b>
+<b class="fc">&nbsp;                .openingDate(LocalDateTime.now())</b>
+<b class="fc">&nbsp;                .ifscCode(request.getIfscCode())</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;
+<b class="fc">&nbsp;        Account savedAccount = accountRepo.save(account);</b>
+&nbsp;//        log.info(&quot;Account created successfully: {}&quot;, savedAccount.getId());
+&nbsp;
+<b class="fc">&nbsp;        issueDebitCardAutomatically(savedAccount);</b>
+&nbsp;
+&nbsp;//        log.info(&quot;Account setup completed with debit card&quot;);
+&nbsp;    }
+&nbsp;
+&nbsp;    private void issueDebitCardAutomatically(Account account) {
+&nbsp;        try {
+<b class="fc">&nbsp;            DebitCard debitCard = DebitCard.builder()</b>
+<b class="fc">&nbsp;                    .accountNumber(account.getAccountNumber())</b>
+<b class="fc">&nbsp;                    .cardNumber(generateCardNumber())</b>
+<b class="fc">&nbsp;                    .expiryDate(LocalDate.now().plusYears(5))</b>
+<b class="fc">&nbsp;                    .dailyLimit(50000)</b>
+<b class="fc">&nbsp;                    .usedToday(0)</b>
+<b class="fc">&nbsp;                    .status(CardStatus.ACTIVE)</b>
+<b class="fc">&nbsp;                    .issuedDate(LocalDate.now())</b>
+<b class="fc">&nbsp;                    .build();</b>
+&nbsp;
+<b class="fc">&nbsp;            debitCardRepo.save(debitCard);</b>
+<b class="fc">&nbsp;            log.info(&quot;Debit card issued automatically: {}&quot;, debitCard.getCardNumber());</b>
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            log.error(&quot;Failed to issue debit card&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    @Override
+&nbsp;    public void credit(String accountNumber, BigDecimal amount) {
+&nbsp;
+<b class="fc">&nbsp;        Account account = accountRepo.findByAccountNumber(accountNumber)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (account.getStatus() != AccountStatus.ACTIVE) {</b>
+<b class="fc">&nbsp;            throw BusinessException.accountInactive();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        account.setBalance(account.getBalance().add(amount));</b>
+<b class="fc">&nbsp;        accountRepo.save(account);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void debit(String accountNumber, BigDecimal amount) {
+&nbsp;
+<b class="fc">&nbsp;        Account account = accountRepo.findByAccountNumber(accountNumber)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (account.getStatus() != AccountStatus.ACTIVE) {</b>
+<b class="fc">&nbsp;            throw BusinessException.accountInactive();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (account.getBalance().compareTo(amount) &lt; 0) {</b>
+<b class="fc">&nbsp;            throw BusinessException.insufficientBalance();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        account.setBalance(account.getBalance().subtract(amount));</b>
+<b class="fc">&nbsp;        accountRepo.save(account);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void transfer(String fromAccount,
+&nbsp;                         String toAccount,
+&nbsp;                         BigDecimal amount,
+&nbsp;                         BigDecimal charges) {
+&nbsp;
+<b class="fc">&nbsp;        Account sender = accountRepo.findByAccountNumber(fromAccount)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        Account receiver = accountRepo.findByAccountNumber(toAccount)</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        BigDecimal totalDebit = amount.add(charges);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (sender.getBalance().compareTo(totalDebit) &lt; 0) {</b>
+<b class="fc">&nbsp;            throw BusinessException.insufficientBalance();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        sender.setBalance(sender.getBalance().subtract(totalDebit));</b>
+<b class="fc">&nbsp;        receiver.setBalance(receiver.getBalance().add(amount));</b>
+&nbsp;
+<b class="fc">&nbsp;        accountRepo.save(sender);</b>
+<b class="fc">&nbsp;        accountRepo.save(receiver);</b>
+&nbsp;    }
+&nbsp;    @Override
+&nbsp;    public void updateBalance(BalanceUpdateRequest req) {
+&nbsp;
+<b class="fc">&nbsp;        Account account = accountRepo.findByAccountNumber(req.getAccountNumber())</b>
+<b class="fc">&nbsp;                .orElseThrow(BusinessException::accountNotFound);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (req.getTransactionId().equals(account.getLastProcessedTransactionId())) {</b>
+<b class="fc">&nbsp;            log.info(&quot;Duplicate transaction ignored: {}&quot;, req.getTransactionId());</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (account.getStatus() != AccountStatus.ACTIVE) {</b>
+<b class="fc">&nbsp;            throw BusinessException.accountInactive();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        BigDecimal newBalance = account.getBalance().add(req.getDelta());</b>
+&nbsp;
+<b class="fc">&nbsp;        if (newBalance.compareTo(BigDecimal.ZERO) &lt; 0) {</b>
+<b class="fc">&nbsp;            throw BusinessException.insufficientBalance();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        account.setBalance(newBalance);</b>
+<b class="fc">&nbsp;        account.setLastProcessedTransactionId(req.getTransactionId());</b>
+&nbsp;
+<b class="fc">&nbsp;        accountRepo.save(account);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generateCardNumber() {
+<b class="fc">&nbsp;        return &quot;4532&quot; + System.currentTimeMillis();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-02-13 14:33</div>
+</div>
+</body>
+</html>
