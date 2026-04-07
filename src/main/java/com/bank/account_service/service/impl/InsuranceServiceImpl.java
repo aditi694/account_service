@@ -9,6 +9,7 @@ import com.bank.account_service.enums.InsuranceStatus;
 import com.bank.account_service.exception.BusinessException;
 import com.bank.account_service.repository.AccountRepository;
 import com.bank.account_service.repository.InsuranceRepository;
+import com.bank.account_service.security.SecurityUtil;
 import com.bank.account_service.service.InsuranceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,15 @@ public class InsuranceServiceImpl implements InsuranceService {
     @Override
     public InsuranceRequestResponse requestInsurance(UUID accountId, IssueInsuranceRequest request) {
 
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(BusinessException::accountNotFound);
-
+        if (!SecurityUtil.getCurrentUser().isCustomer()) {
+            throw new RuntimeException("Only customers can apply for insurance");
+        }
+        UUID customerId = SecurityUtil.getCurrentCustomerId();
+        List<Account> accounts = accountRepository.findByCustomerId(customerId);
+        if (accounts == null || accounts.isEmpty()) {
+            throw BusinessException.accountNotFound();
+        }
+        Account account = accounts.get(0);
         Insurance insurance = Insurance.builder()
                 .insuranceId("INS-" + System.currentTimeMillis())
                 .account(account)
@@ -48,9 +55,7 @@ public class InsuranceServiceImpl implements InsuranceService {
                 .build();
 
         insuranceRepository.save(insurance);
-
         log.info("Insurance approved automatically: {}", insurance.getInsuranceId());
-
         return InsuranceRequestResponse.builder()
                 .insuranceId(insurance.getInsuranceId())
                 .status(InsuranceStatus.ACTIVE)
