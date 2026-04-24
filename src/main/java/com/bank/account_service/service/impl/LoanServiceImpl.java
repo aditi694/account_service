@@ -1,5 +1,7 @@
 package com.bank.account_service.service.impl;
 
+import com.bank.account_service.client.NotificationClient;
+import com.bank.account_service.dto.account.request.InternalNotificationRequest;
 import com.bank.account_service.dto.loan.IssueLoanRequest;
 import com.bank.account_service.dto.loan.response.LoanApprovalResponse;
 import com.bank.account_service.dto.loan.response.LoanRequestResponse;
@@ -30,7 +32,7 @@ public class LoanServiceImpl implements LoanService {
 
     private final LoanRepository loanRepository;
     private final AccountRepository accountRepository;
-
+    private final NotificationClient notificationClient;
     private static final double AUTO_APPROVAL_LIMIT = 50000.0;
 
     @Override
@@ -65,7 +67,23 @@ public class LoanServiceImpl implements LoanService {
                 .build();
 
         loanRepository.save(loan);
+        try {
+            InternalNotificationRequest req = new InternalNotificationRequest();
+            req.setUserId(loan.getAccount().getCustomerId());
 
+            if (status == LoanStatus.ACTIVE) {
+                req.setMessage("Your loan has been approved successfully");
+            } else {
+                req.setMessage("Your loan request is submitted and under review");
+            }
+
+            req.setType("LOAN");
+
+            notificationClient.sendNotification(req);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for loan {}", loan.getLoanId());
+        }
         log.info("Loan {} created with status: {}", loan.getLoanId(), status);
 
         String message = autoApprove
@@ -96,7 +114,17 @@ public class LoanServiceImpl implements LoanService {
         LoanStatus previousStatus = loan.getStatus();
         loan.setStatus(LoanStatus.ACTIVE);
         loanRepository.save(loan);
+        try {
+            InternalNotificationRequest req = new InternalNotificationRequest();
+            req.setUserId(loan.getAccount().getCustomerId());
+            req.setMessage("Your loan has been approved by admin");
+            req.setType("LOAN");
 
+            notificationClient.sendNotification(req);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for loan {}", loanId);
+        }
         log.info("Loan {} approved successfully", loanId);
 
         return LoanApprovalResponse.builder()
@@ -124,7 +152,17 @@ public class LoanServiceImpl implements LoanService {
         LoanStatus previousStatus = loan.getStatus();
         loan.setStatus(LoanStatus.REJECTED);
         loanRepository.save(loan);
+        try {
+            InternalNotificationRequest req = new InternalNotificationRequest();
+            req.setUserId(loan.getAccount().getCustomerId());
+            req.setMessage("Your loan application has been rejected");
+            req.setType("LOAN");
 
+            notificationClient.sendNotification(req);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for loan {}", loanId);
+        }
         log.info("Loan {} rejected successfully", loanId);
 
         return LoanApprovalResponse.builder()

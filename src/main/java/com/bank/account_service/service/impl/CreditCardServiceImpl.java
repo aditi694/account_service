@@ -1,5 +1,7 @@
 package com.bank.account_service.service.impl;
 
+import com.bank.account_service.client.NotificationClient;
+import com.bank.account_service.dto.account.request.InternalNotificationRequest;
 import com.bank.account_service.dto.card.response.CreditCardIssueResponse;
 import com.bank.account_service.entity.Account;
 import com.bank.account_service.entity.CreditCardRequest;
@@ -32,6 +34,7 @@ public class CreditCardServiceImpl implements CreditCardService {
     private final CreditCardRequestRepository requestRepo;
     private final TransactionClient transactionClient;
     private final AccountRepository accountRepository;
+    private final NotificationClient notificationClient;
 
     private static final double AUTO_APPROVAL_THRESHOLD = 25_000.0;
     private static final double DEFAULT_CREDIT_LIMIT = 50_000.0;
@@ -71,6 +74,17 @@ public class CreditCardServiceImpl implements CreditCardService {
 
         if (totalDebit >= AUTO_APPROVAL_THRESHOLD) {
             issueCard(customerId);
+            try {
+                InternalNotificationRequest req = new InternalNotificationRequest();
+                req.setUserId(customerId);
+                req.setMessage("Your credit card has been issued successfully");
+                req.setType("CARD");
+
+                notificationClient.sendNotification(req);
+
+            } catch (Exception e) {
+                log.warn("Notification failed for credit card auto approval {}", customerId);
+            }
             return null;
         }
 
@@ -81,7 +95,19 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .requestedAt(LocalDateTime.now())
                 .build();
 
-        return requestRepo.save(request).getId();
+        UUID requestId = requestRepo.save(request).getId();
+        try {
+            InternalNotificationRequest req = new InternalNotificationRequest();
+            req.setUserId(customerId);
+            req.setMessage("Your credit card request is under review");
+            req.setType("CARD");
+
+            notificationClient.sendNotification(req);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for credit card request {}", requestId);
+        }
+        return requestId;
     }
 
     private String normalize(String name) {
@@ -112,7 +138,17 @@ public class CreditCardServiceImpl implements CreditCardService {
         }
 
         CreditCard card = issueCard(req.getCustomerId());
+        try {
+            InternalNotificationRequest notif = new InternalNotificationRequest();
+            notif.setUserId(req.getCustomerId());
+            notif.setMessage("Your credit card has been approved and issued");
+            notif.setType("CARD");
 
+            notificationClient.sendNotification(notif);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for credit card approval {}", requestId);
+        }
         req.setStatus(CardStatus.APPROVED);
         req.setApprovedLimit(card.getCreditLimit());
         req.setDecidedAt(LocalDateTime.now());
@@ -151,6 +187,17 @@ public class CreditCardServiceImpl implements CreditCardService {
         req.setStatus(CardStatus.REJECTED);
         req.setRejectionReason(reason);
         req.setDecidedAt(LocalDateTime.now());
+        try {
+            InternalNotificationRequest notif = new InternalNotificationRequest();
+            notif.setUserId(req.getCustomerId());
+            notif.setMessage("Your credit card request has been rejected");
+            notif.setType("CARD");
+
+            notificationClient.sendNotification(notif);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for credit card rejection {}", requestId);
+        }
     }
 
     @Override

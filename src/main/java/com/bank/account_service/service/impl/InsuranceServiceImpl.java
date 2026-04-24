@@ -1,5 +1,7 @@
 package com.bank.account_service.service.impl;
 
+import com.bank.account_service.client.NotificationClient;
+import com.bank.account_service.dto.account.request.InternalNotificationRequest;
 import com.bank.account_service.dto.insurance.IssueInsuranceRequest;
 import com.bank.account_service.dto.insurance.response.InsuranceRequestResponse;
 import com.bank.account_service.dto.insurance.response.InsuranceResponse;
@@ -30,6 +32,7 @@ public class InsuranceServiceImpl implements InsuranceService {
 
     private final InsuranceRepository insuranceRepository;
     private final AccountRepository accountRepository;
+    private final NotificationClient notificationClient;
 
     @Override
     public InsuranceRequestResponse requestInsurance(UUID accountId, IssueInsuranceRequest request) {
@@ -56,6 +59,17 @@ public class InsuranceServiceImpl implements InsuranceService {
 
         insuranceRepository.save(insurance);
         log.info("Insurance approved automatically: {}", insurance.getInsuranceId());
+        try {
+            InternalNotificationRequest req = new InternalNotificationRequest();
+            req.setUserId(customerId);
+            req.setMessage("Your insurance policy is active and successfully created");
+            req.setType("INSURANCE");
+
+            notificationClient.sendNotification(req);
+
+        } catch (Exception e) {
+            log.warn("Notification failed for insurance {}", insurance.getInsuranceId());
+        }
         return InsuranceRequestResponse.builder()
                 .insuranceId(insurance.getInsuranceId())
                 .status(InsuranceStatus.ACTIVE)
