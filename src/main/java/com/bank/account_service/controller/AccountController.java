@@ -28,8 +28,10 @@ public class AccountController {
 
     @PostMapping("/login")
     public BaseResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        System.out.println("calling ::: ");
 
         LoginResponse data = accountService.login(request);
+        System.out.println("login repsonse ::::: "+ data);
 
         return new BaseResponse<>(
                 data,

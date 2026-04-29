@@ -33,14 +33,20 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public LoginResponse login(LoginRequest request) {
 
+        log.info("Login attempt started for accountNumber={}", request.getAccountNumber());
+
         AccountValidator.validateLoginRequest(request);
 
         Account account = accountRepo.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(BusinessException::invalidCredentials);
+                .orElseThrow(() -> {
+                    log.warn("Login failed: account not found for accountNumber={}", request.getAccountNumber());
+                    return BusinessException.invalidCredentials();
+                });
 
         AccountValidator.validateAccountStatus(account);
 
         if (!passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
+            log.warn("Login failed: invalid password for accountNumber={}", request.getAccountNumber());
             throw BusinessException.invalidCredentials();
         }
 
@@ -49,6 +55,9 @@ public class AccountServiceImpl implements AccountService {
                 account.getCustomerId(),
                 "CUSTOMER"
         );
+
+        log.info("Login successful for accountId={}, customerId={}",
+                account.getId(), account.getCustomerId());
 
         return LoginResponse.builder()
                 .success(true)
